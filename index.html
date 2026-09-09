@@ -1,0 +1,1167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MemoLogs · Vertical AI for Marketing</title>
+<meta name="description" content="MemoLogs proves which advertising actually caused sales with continuous causal experiments, then its AI moves the money inside approved limits—and remembers why. The system of record for advertising decisions.">
+<link rel="icon" href="assets/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="scrollcraft.css">
+<style>
+  :root {
+    --sc-canvas:      #070D17;
+    --sc-surface:     #0F1A28;
+    --sc-ink:         #EDF4F5;
+    --sc-ink-soft:    #93A7B0;
+    --sc-accent:      #2EF0CB;
+    --sc-accent-ink:  #06121A;
+    --sc-font-display: "Archivo", "Geist", system-ui, sans-serif;
+    --sc-font-text:    "Geist", system-ui, sans-serif;
+    --sc-font-mono:    "Geist Mono", ui-monospace, monospace;
+    --sc-shadow-color: 215 60% 3%;
+    --ml-teal-deep: #0E6E60;
+    --ml-line: color-mix(in oklab, var(--sc-ink) 14%, transparent);
+    --ml-rail: 0rem;   /* kept at zero: nothing floats over the content any more */
+    --ml-bar: clamp(4.2rem, 4rem + 1.6vw, 5.4rem);
+  }
+  html { background: var(--sc-canvas); }
+  body { color: var(--sc-ink); }
+  .sc-display { font-weight: 500; }
+  .sc-body { line-height: 1.66; letter-spacing: 0.002em; }
+  .ml-em { color: var(--sc-ink); }
+
+  /* ------------------------------------------------------------ chrome -- */
+  .bar {
+    position: fixed; inset: 0 0 auto 0; z-index: var(--sc-z-chrome);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: var(--sc-4) var(--sc-gutter);
+    pointer-events: none;
+  }
+  .bar > * { pointer-events: auto; }
+  .bar::before {
+    content: ""; position: absolute; inset: 0 0 -1.4rem 0; z-index: -1;
+    background: linear-gradient(to bottom, color-mix(in oklab, var(--sc-canvas) 96%, transparent) 0%, color-mix(in oklab, var(--sc-canvas) 86%, transparent) 55%, transparent 100%);
+    opacity: 0; transition: opacity var(--sc-d-slow) var(--sc-ease-out);
+  }
+  .bar.is-scrolled::before { opacity: 1; }
+  .mark { display: inline-flex; align-items: center; gap: var(--sc-3); text-decoration: none; color: var(--sc-ink); font-family: var(--sc-font-display); font-weight: 500; letter-spacing: -0.01em; font-size: 1.05rem; }
+  .mark svg, .mark__img { width: 26px; height: 26px; }
+  .mark__img { object-fit: contain; }
+
+  .cta {
+    display: inline-flex; align-items: center; gap: var(--sc-2);
+    font-family: var(--sc-font-display); font-weight: 500; font-size: var(--sc-t-sm);
+    letter-spacing: 0; white-space: nowrap;
+    color: var(--sc-accent-ink); background: var(--sc-accent);
+    padding: 0.7rem 1.1rem; border-radius: var(--sc-r-sm); text-decoration: none;
+    box-shadow: var(--sc-e1);
+    transition: transform 140ms var(--sc-ease-out), background-color 140ms var(--sc-ease-out), box-shadow 140ms var(--sc-ease-out);
+  }
+  .cta:hover { background: color-mix(in oklab, var(--sc-accent) 88%, white); box-shadow: var(--sc-e2); }
+  .cta:active { transform: translateY(1px) scale(0.985); }
+  .cta--quiet { background: transparent; color: var(--sc-ink); box-shadow: inset 0 0 0 1px var(--sc-hairline-strong); }
+  .cta--quiet:hover { background: color-mix(in oklab, var(--sc-ink) 8%, transparent); box-shadow: inset 0 0 0 1px var(--sc-hairline-strong); }
+  .cta--lg { font-size: var(--sc-t-base); padding: 0.95rem 1.45rem; }
+
+  /* -------------------------------------------------------------- hero -- */
+  .hero { --ml-obj-x: 0; }
+  .hero .sc-stage { background: var(--sc-canvas); }
+  .hero__far, .hero__haze, .hero__fore, .hero__floor { position: absolute; pointer-events: none; }
+  .hero__far { inset: -8% -4%; }
+  .hero__far img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%; max-width: none; }
+  .hero__haze { inset: 0; background: radial-gradient(74% 54% at 71% 56%, color-mix(in oklab, var(--ml-teal-deep) 26%, transparent), transparent 70%); opacity: 0.8; mix-blend-mode: screen; }
+  .hero__floor { inset: auto 0 0 0; height: 28%; background: linear-gradient(to top, var(--sc-canvas), transparent); }
+  .hero__scene { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+  .hero__scene canvas, .hero__scene picture, .hero__scene img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; }
+  .hero__poster { object-fit: cover; display: none; }
+  .no-webgl .hero__poster { display: block; object-fit: contain; object-position: 100% 50%; }
+  .no-webgl .hero__scene { left: 18%; }
+  .no-webgl .hero__scene canvas { display: none; }
+  .hero__fore {
+    z-index: 4; width: 40vmin; height: 40vmin; right: -14vmin; bottom: -18vmin; border-radius: 50%;
+    background: radial-gradient(circle at 34% 30%, #7FFBE3 0%, #2EE7C3 22%, #12A88E 52%, #085247 78%, #041F1C 100%);
+    filter: blur(11px); opacity: 0.72;
+  }
+  .hero__fore--b { width: 9vmin; height: 9vmin; right: auto; left: 46vw; bottom: auto; top: 12vh; filter: blur(7px); opacity: 0.38; }
+  .hero__copy { z-index: 2; max-width: min(40rem, 45vw); top: 50%; bottom: auto; translate: 0 -50%; }
+  .hero__copy--b { z-index: 5; max-width: min(40rem, 45vw); pointer-events: none; }   /* nothing to click here; it must not shadow the CTA beneath */
+  .hero__scrim, .hero__scrim--b { pointer-events: none; }
+  .hero__copy .sc-body { max-width: 40ch; margin-top: var(--sc-5); color: var(--sc-ink-soft); }
+  .hero__copy .cta { margin-top: var(--sc-6); }
+  .hero__triad { --gap: clamp(0.9rem, 1.6vw, 1.5rem); margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: var(--gap); font-weight: 500; }
+  .hero__line > span { margin-left: calc(-1 * var(--gap)); padding-left: var(--gap); }
+  .hero__line { display: contents; }
+  .hero__line > * { padding: clamp(0.55rem, 1.2vh, 0.9rem) 0; border-top: 1px solid color-mix(in oklab, var(--sc-ink) 10%, transparent); align-self: stretch; display: flex; align-items: center; }
+  .hero__line:last-child > * { border-bottom: 1px solid color-mix(in oklab, var(--sc-ink) 10%, transparent); }
+  .hero__line b { font-family: var(--sc-font-display); font-weight: 500; font-size: clamp(1.9rem, 1rem + 2.6vw, 3.3rem); letter-spacing: var(--sc-track-snug); line-height: 1; color: var(--sc-ink-soft); transition: color 400ms var(--sc-ease-out), text-shadow 400ms var(--sc-ease-out); min-width: 5.2ch; }
+  .hero__line span { font-family: var(--sc-font-display); font-size: clamp(0.95rem, 0.7rem + 0.7vw, 1.2rem); line-height: 1.3; color: var(--sc-ink-soft); letter-spacing: -0.005em; text-wrap: pretty; transition: color 400ms var(--sc-ease-out); }
+  .hero__line.is-on b { color: var(--sc-accent); }
+  .hero__line.is-on span, .hero__line.is-done span { color: var(--sc-ink); }
+  .hero__line.is-done b { color: var(--sc-ink); }
+  .hero__triad + .cta { margin-top: var(--sc-6); }
+  .hero__kicker { display: block; color: var(--sc-accent); margin-bottom: var(--sc-4); }
+  .hero__copy--b .sc-display--lg { max-width: 13ch; font-size: clamp(2.4rem, 1.4rem + 4.4vw, 5.2rem); line-height: 1.02; }
+  .hero__sub { margin: var(--sc-4) 0 0; max-width: 36ch; font-family: var(--sc-font-display); font-size: clamp(1rem, 0.8rem + 0.6vw, 1.2rem); line-height: 1.4; color: var(--sc-ink); }
+  .hero__scrim { z-index: 1; }
+  .hero__scrim--b { z-index: 4; opacity: clamp(0, calc((var(--sc-p, 0) - 0.62) * 6), 1); background: linear-gradient(to right, color-mix(in oklab, var(--sc-canvas) 94%, transparent) 0%, color-mix(in oklab, var(--sc-canvas) 78%, transparent) 40%, transparent 68%); }
+
+  /* --------------------------------------------------- the missing object -- */
+  .missing { padding-block: calc(var(--sc-10) + var(--ml-bar)) var(--sc-10); }
+  .missing__grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--sc-8) var(--sc-9); align-items: start; }
+  .missing__grid .sc-display--md { max-width: 13ch; font-size: clamp(1.95rem, 1.35rem + 2vw, 3rem); }
+  .missing__grid .sc-body { max-width: 34ch; }
+  .missing__note { margin: var(--sc-5) 0 0; font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); letter-spacing: var(--sc-track-wide); text-transform: uppercase; color: color-mix(in oklab, var(--sc-ink-soft) 75%, transparent); }
+  .missing__list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ml-line); }
+  .missing__list li { display: grid; grid-template-columns: minmax(8.5rem, max-content) minmax(0, 1fr); grid-template-rows: auto auto; column-gap: var(--sc-6); row-gap: 0.3rem; align-items: center; padding: 1.15rem 0; border-bottom: 1px solid var(--ml-line); }
+  .ans__v { grid-row: 1 / span 2; align-self: center; font-family: var(--sc-font-display); font-weight: 500; letter-spacing: var(--sc-track-snug); line-height: 1; font-size: clamp(1.7rem, 1.05rem + 2.3vw, 2.9rem); font-variant-numeric: tabular-nums; color: var(--sc-ink); }
+  .missing__list li:last-child .ans__v { color: var(--sc-accent); }
+  .ans__s { align-self: end; font-family: var(--sc-font-display); font-weight: 500; font-size: var(--sc-t-base); line-height: 1.2; color: var(--sc-ink); }
+  .ans__n { align-self: start; font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); line-height: 1.45; color: var(--sc-ink-soft); letter-spacing: 0.02em; text-wrap: pretty; }
+  .missing__after { margin-top: var(--sc-8); max-width: 50ch; }
+  .missing__after .sc-lede { font-size: var(--sc-t-lg); }
+
+  /* ------------------------------------------------------------- path -- */
+  .path .sc-stage { display: flex; align-items: center; background: transparent; }
+  .rail { gap: clamp(1rem, 2.4vw, 2.25rem); padding-inline: var(--sc-gutter); align-items: stretch; }
+  .rail__lead { flex: 0 0 auto; width: clamp(20rem, 32vw, 30rem); align-self: center; padding-right: clamp(1rem, 3vw, 3rem); }
+  .rail__lead .sc-body { margin-top: var(--sc-5); }
+  .station { flex: 0 0 auto; width: clamp(18rem, 23vw, 22rem); min-height: clamp(21rem, 50vh, 27rem); display: flex; flex-direction: column; justify-content: flex-start; gap: var(--sc-4); transition: transform 320ms var(--sc-ease-out), box-shadow 320ms var(--sc-ease-out); padding: var(--sc-4) var(--sc-5) var(--sc-5); background: var(--sc-surface); border-radius: var(--sc-r-md); box-shadow: var(--sc-e2), var(--sc-edge); position: relative; overflow: clip; }
+  .station::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--sc-accent); opacity: 0.9; }
+  .station__art { position: relative; height: 7.2rem; border-radius: var(--sc-r-sm); background: radial-gradient(80% 90% at 50% 100%, color-mix(in oklab, var(--sc-accent) 14%, transparent), transparent 70%), color-mix(in oklab, var(--sc-canvas) 60%, transparent); display: grid; place-items: center; overflow: hidden; }
+  .station__art svg { width: 78%; height: 84%; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .station__art .a { stroke: var(--sc-accent); }
+  .station__art .a2 { stroke: var(--sc-accent); fill: var(--sc-accent); }
+  .station__art .b { stroke: color-mix(in oklab, var(--sc-ink) 32%, transparent); }
+  .station__art text { fill: var(--sc-ink-soft); stroke: none; font-family: var(--sc-font-mono); font-size: 8px; }
+  .station h3 { font-family: var(--sc-font-display); font-weight: 500; font-size: var(--sc-t-xl); letter-spacing: var(--sc-track-snug); line-height: 1.04; margin: var(--sc-3) 0 0; }
+  .station p { margin: var(--sc-3) 0 0; color: var(--sc-ink-soft); font-size: var(--sc-t-sm); line-height: 1.5; text-wrap: pretty; }
+  .station .sc-label { color: var(--sc-accent); }
+  .station:hover { transform: translateY(-4px); box-shadow: var(--sc-e3), var(--sc-edge); }
+  .station__out { margin-top: auto; padding-top: var(--sc-4); border-top: 1px solid var(--ml-line); font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); color: var(--sc-ink); letter-spacing: 0; }
+  .station__out b { display: block; font-weight: 500; color: var(--sc-ink-soft); text-transform: uppercase; letter-spacing: var(--sc-track-wide); margin-bottom: var(--sc-1); }
+  .rail__tail { flex: 0 0 auto; width: clamp(18rem, 26vw, 24rem); align-self: center; padding-left: clamp(1rem, 3vw, 3rem); }
+  .rail__tail .sc-lede { font-family: var(--sc-font-display); font-size: var(--sc-t-xl); line-height: 1.12; }
+  @media (prefers-reduced-motion: no-preference) {
+    .station { --i: 0; opacity: clamp(0.55, calc(var(--sc-p, 0) * 9 - var(--i) + 1.6), 1); transform: translateY(calc((1 - clamp(0, calc(var(--sc-p, 0) * 9 - var(--i) + 1.6), 1)) * 18px)); }
+    .station:nth-of-type(1) { --i: 1; } .station:nth-of-type(2) { --i: 2; } .station:nth-of-type(3) { --i: 3; }
+    .station:nth-of-type(4) { --i: 4; } .station:nth-of-type(5) { --i: 5; } .station:nth-of-type(6) { --i: 6; }
+  }
+
+  /* ---------------------------------------------------------- silence -- */
+  .silence { min-height: 88vh; display: grid; place-items: center; padding-block: var(--sc-10); padding-inline: var(--sc-gutter); }
+  .silence__in { display: grid; justify-items: center; text-align: center; gap: var(--sc-5); width: 100%; max-width: min(52rem, 100%); }
+  .silence__kicker { color: var(--sc-accent); }
+  .silence p { font-family: var(--sc-font-display); font-weight: 500; font-size: clamp(1.9rem, 1.1rem + 2.7vw, 3.6rem); line-height: 1.06; letter-spacing: var(--sc-track-tight); color: var(--sc-ink); text-align: center; text-wrap: balance; margin: 0; }
+  .silence__rule { --d: clamp(0, calc((var(--sc-p, 0) - 0.15) / 0.5), 1); display: block; width: 1px; height: clamp(7rem, 24vh, 14rem); margin-top: var(--sc-3); background: linear-gradient(to bottom, var(--sc-accent) 0%, color-mix(in oklab, var(--sc-accent) 55%, transparent) 60%, transparent 100%); opacity: calc(0.35 + var(--d) * 0.65); transform: scaleY(var(--d)); transform-origin: top center; will-change: transform; }
+  @media (prefers-reduced-motion: reduce) { .silence__rule { --d: 1; } }
+
+  /* ------------------------------------------------------------- demo -- */
+  .demo .sc-stage { background: transparent; }
+  .demo__inner { position: absolute; inset: 0; padding: clamp(4.5rem, 10vh, 6rem) var(--sc-gutter) clamp(1.5rem, 4vh, 3rem); display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); grid-template-rows: auto auto 1fr; grid-template-areas: 'head head' 'proposal tests' 'close tests'; gap: var(--sc-5) var(--sc-7); align-items: start; }
+  .demo__head { grid-area: head; } .proposal { grid-area: proposal; } .tests { grid-area: tests; } .demo__close { grid-area: close; }
+  .demo__head { grid-column: 1 / -1; display: flex; align-items: baseline; justify-content: space-between; gap: var(--sc-5); flex-wrap: wrap; }
+  .demo__head h2 { max-width: 20ch; font-size: var(--sc-t-xl); }
+  .demo__tag { font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); letter-spacing: var(--sc-track-wide); text-transform: uppercase; color: var(--sc-ink-soft); padding: 0.4rem 0.6rem; border: 1px solid var(--sc-hairline-strong); border-radius: var(--sc-r-sm); }
+  .proposal { background: var(--sc-surface); border-radius: var(--sc-r-md); box-shadow: var(--sc-e3), var(--sc-edge); padding: var(--sc-5); font-family: var(--sc-font-mono); font-size: 0.8rem; line-height: 1.45; }
+  .proposal dl { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--sc-2) var(--sc-5); }
+  .proposal dt { color: var(--sc-ink-soft); text-transform: uppercase; letter-spacing: var(--sc-track-wide); font-size: var(--sc-t-xs); padding-top: 0.15em; }
+  .proposal dd { margin: 0; color: var(--sc-ink); }
+  .proposal__title { font-family: var(--sc-font-display); font-size: var(--sc-t-lg); font-weight: 500; letter-spacing: var(--sc-track-snug); line-height: 1.15; margin: 0 0 var(--sc-4); }
+  .proposal .sc-body { font-size: clamp(0.85rem, 1.05vw, 1rem); line-height: 1.45; margin: 0.35rem 0 0.9rem; }
+  .proposal .sc-label { margin: 0.65rem 0 0; font-size: 0.65rem; }
+  .proposal__band { margin-top: var(--sc-4); padding-top: var(--sc-4); border-top: 1px solid var(--ml-line); color: var(--sc-ink-soft); }
+  .proposal__band strong { color: var(--sc-ink); font-weight: 500; }
+  .tests { display: grid; gap: var(--sc-3); align-content: start; }
+  .test { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr) auto; gap: var(--sc-4); align-items: start; padding: var(--sc-3) 0; border-top: 1px solid var(--ml-line); }
+  .test__name { font-family: var(--sc-font-display); font-weight: 500; font-size: var(--sc-t-base); letter-spacing: var(--sc-track-snug); }
+  .test__body { font-size: 0.84rem; color: var(--sc-ink-soft); line-height: 1.45; }
+  .test__body b { color: var(--sc-ink); font-weight: 500; }
+  .test__state { font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); letter-spacing: var(--sc-track-wide); text-transform: uppercase; white-space: nowrap; padding: 0.35rem 0.55rem; border-radius: var(--sc-r-sm); border: 1px solid var(--sc-hairline-strong); color: var(--sc-ink); }
+  .test__state--limited { border-color: var(--sc-accent); color: var(--sc-accent); }
+  .verdict { margin-top: 0; align-self: start; padding: var(--sc-4) var(--sc-5); border-radius: var(--sc-r-md); background: color-mix(in oklab, var(--sc-accent) 9%, var(--sc-surface)); box-shadow: var(--sc-e2), inset 0 0 0 1px color-mix(in oklab, var(--sc-accent) 35%, transparent); }
+  .verdict h3 { font-family: var(--sc-font-display); font-weight: 500; font-size: var(--sc-t-xl); letter-spacing: var(--sc-track-snug); line-height: 1.05; margin: 0; }
+  .verdict h3 small { display: block; font-size: var(--sc-t-xs); font-family: var(--sc-font-mono); letter-spacing: var(--sc-track-wide); text-transform: uppercase; color: var(--sc-ink-soft); margin-bottom: var(--sc-2); }
+  .verdict ul { margin: var(--sc-3) 0 0; padding: 0; list-style: none; display: grid; gap: 0.3rem; font-size: 0.84rem; }
+  .verdict li { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--sc-4); }
+  .verdict li span:first-child { font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); color: var(--sc-ink-soft); text-transform: uppercase; letter-spacing: var(--sc-track-wide); padding-top: 0.2em; }
+  .verdict__reason { margin: var(--sc-3) 0 0; color: var(--sc-ink); font-size: 0.84rem; line-height: 1.5; }
+  .verdict__rules { margin: var(--sc-3) 0 0; font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); color: var(--sc-ink-soft); opacity: 0; transition: opacity 420ms var(--sc-ease-out); }
+  .demo.is-dwelling .verdict__rules { opacity: 1; }
+  .demo__close { align-self: end; }
+  .demo__close .sc-lede { font-family: var(--sc-font-display); font-size: var(--sc-t-lg); line-height: 1.2; max-width: 34ch; }
+
+
+  /* --------------------------------------------------------- flywheel -- */
+  .fw .sc-stage { background: transparent; }
+  .fw__inner { position: absolute; inset: 0; padding: calc(var(--ml-bar) + clamp(0.75rem, 2.5vh, 1.75rem)) var(--sc-gutter) clamp(1.5rem, 4vh, 3rem); display: grid; grid-template-columns: minmax(0, 6.2fr) minmax(0, 5.8fr); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: 'head head' 'fig card'; gap: var(--sc-5) clamp(2rem, 4vw, 4rem); align-items: center; }
+  .fw__head { grid-area: head; display: flex; align-items: baseline; gap: var(--sc-5); flex-wrap: wrap; }
+  .fw__head .sc-display--md { font-size: var(--sc-t-xl); }
+  .fw__fig { grid-area: fig; margin: 0; align-self: center; justify-self: center; width: 100%; max-width: min(100%, 74vh); display: grid; gap: 0.9rem; }
+  .fw__scene { position: relative; width: 100%; aspect-ratio: 1 / 0.74; }
+  .fw__scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; }
+  .fw__labels { position: absolute; inset: 0; pointer-events: none; }
+  /* every label projected out of a 3D scene sits on its own plate, so it stays legible whatever passes behind it */
+  .fw__lab, .bd__lab { padding: 0.2rem 0.5rem; border-radius: 8px; background: color-mix(in oklab, var(--sc-canvas) 72%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-ink) 6%, transparent); }
+  .fw__lab { position: absolute; transform: translate(-50%, -50%); display: flex; align-items: baseline; gap: 0.34rem; font-family: var(--sc-font-display); font-weight: 500; font-size: clamp(0.78rem, 1vw, 0.95rem); color: var(--sc-ink-soft); letter-spacing: -0.01em; white-space: nowrap; transition: color 300ms var(--sc-ease-out), opacity 300ms var(--sc-ease-out); }
+  .fw__lab small { font-family: var(--sc-font-mono); font-size: 0.58rem; letter-spacing: var(--sc-track-wide); color: var(--sc-ink-soft); opacity: 0.7; }
+  .fw__lab.is-active { box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-accent) 45%, transparent); background: color-mix(in oklab, var(--sc-canvas) 62%, var(--sc-accent)); }
+  .fw__lab.is-done, .fw__lab.is-active { color: var(--sc-ink); }
+  .fw__lab.is-active small { color: var(--sc-accent); opacity: 1; }
+  .fw__lab--hub { transform: translate(-50%, -100%); display: block; white-space: nowrap; text-align: center; font-size: clamp(0.66rem, 0.85vw, 0.8rem); color: var(--sc-ink); background: color-mix(in oklab, var(--sc-canvas) 88%, transparent); }
+  .fw__lab--gate { transform: translate(-50%, 0); font-family: var(--sc-font-mono); font-size: 0.58rem; letter-spacing: var(--sc-track-wide); text-transform: uppercase; color: #F3C969; opacity: 0.65; }
+  .fw__lab--gate.is-on { opacity: 1; }
+  .fw__phases { display: flex; align-items: center; justify-content: center; gap: 0.55rem; flex-wrap: wrap; }
+  .fw__phase-sep { width: 1.1rem; height: 1px; background: color-mix(in oklab, var(--sc-accent) 35%, transparent); }
+  .fw__lab--grp { position: static; transform: none; display: inline-flex; align-items: baseline; gap: 0.4rem; padding: 0.3rem 0.72rem; border-radius: 999px; background: color-mix(in oklab, var(--sc-accent) 8%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-accent) 28%, transparent); opacity: 0.5; transition: opacity 300ms var(--sc-ease-out), box-shadow 300ms var(--sc-ease-out); }
+  .fw__lab--grp small { font-family: var(--sc-font-display); font-size: clamp(0.74rem, 0.95vw, 0.88rem); letter-spacing: 0.01em; text-transform: none; color: var(--sc-accent); opacity: 1; font-weight: 500; }
+  .fw__lab--grp em { font-family: var(--sc-font-mono); font-style: normal; font-size: 0.58rem; letter-spacing: var(--sc-track-wide); color: color-mix(in oklab, var(--sc-accent) 70%, var(--sc-ink-soft)); }
+  .fw__lab--grp.is-on { opacity: 1; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-accent) 55%, transparent); }
+  .pbv__num small { font-size: 0.7rem; color: var(--sc-ink-soft); margin-left: 0.1rem; letter-spacing: 0; }
+  .no-webgl .fw__scene { background: radial-gradient(closest-side, color-mix(in oklab, var(--sc-accent) 12%, transparent), transparent 70%); }
+  .fw__cap { display: grid; gap: 1.05rem; justify-items: center; padding-top: 0.6rem; }
+  .fw__handoff { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); color: var(--sc-ink); padding: 0.4rem 0.7rem; border-radius: 999px; background: color-mix(in oklab, var(--sc-accent) 9%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-accent) 35%, transparent); opacity: 0.55; transition: opacity 300ms var(--sc-ease-out); }
+  .fw__handoff.is-on { opacity: 1; }
+  .fw__handoff-k { color: var(--sc-accent); letter-spacing: var(--sc-track-wide); text-transform: uppercase; font-size: 0.6rem; }
+  .fw__legend { display: flex; gap: var(--sc-5); justify-content: center; flex-wrap: wrap; font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); color: var(--sc-ink-soft); letter-spacing: 0.02em; }
+  .fw__legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .fw__legend i { width: 1.1rem; height: 3px; border-radius: 2px; background: var(--sc-accent); }
+  .fw__legend i.l-gate { background: #F3C969; }
+  .fw__card { grid-area: card; position: relative; align-self: stretch; display: grid; grid-template-rows: minmax(0, 1fr) auto; align-content: stretch; }
+  .fw__dock { min-height: 0; border-radius: 14px; border: 1px dashed color-mix(in oklab, var(--sc-accent) 25%, transparent); opacity: 0; }
+  /* the record, docked into the loop */
+  .pb.is-docked, .pb.is-docked.is-on { top: 0; transform: none; width: auto; border-radius: 14px; transition: opacity 200ms var(--sc-ease-out); }
+  .pb.is-switching { opacity: 0 !important; }
+  .pb [data-pb-feed] { transition: opacity 220ms var(--sc-ease-out), transform 220ms var(--sc-ease-out); }
+  .pb.is-turning [data-pb-feed] { opacity: 0; transform: translateY(-10px); }
+  .pbl { display: grid; gap: var(--sc-3); padding-top: 0.2rem; }
+  .pbl__head { display: flex; align-items: center; gap: 0.6rem; }
+  .pbl__step { font-family: var(--sc-font-mono); font-size: 0.64rem; letter-spacing: var(--sc-track-wide); color: var(--sc-accent); padding: 0.22rem 0.5rem; border-radius: 999px; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-accent) 40%, transparent); }
+  .pbl__verb { font-family: var(--sc-font-display); font-weight: 500; font-size: var(--sc-t-base); letter-spacing: var(--sc-track-snug); color: var(--sc-ink); }
+  .pbl h3 { font-family: var(--sc-font-display); font-weight: 500; font-size: var(--sc-t-xl); line-height: 1.1; letter-spacing: var(--sc-track-snug); margin: 0; color: var(--sc-ink); }
+  .pbl__generic { margin: 0; color: var(--sc-ink-soft); font-size: var(--sc-t-sm); line-height: 1.5; text-wrap: pretty; }
+  .pbl__ex { margin-top: 0.1rem; padding: var(--sc-4); border-radius: 10px; background: color-mix(in oklab, var(--sc-accent) 7%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-accent) 22%, transparent); display: grid; gap: 0.5rem; }
+  .pbl__ex .sc-label { color: var(--sc-accent); font-size: 0.62rem; }
+  .pbl__ex p { margin: 0; font-size: var(--sc-t-sm); line-height: 1.5; color: var(--sc-ink); text-wrap: pretty; }
+  .pbl__ex .pbv { margin-top: 0; }
+  .pbl__hand { margin: 0; font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); color: var(--sc-ink-soft); letter-spacing: 0.02em; }
+  .pbl.is-in { animation: pb-in 460ms var(--sc-ease-out); }
+  .fw__byline { grid-area: 2 / 1; align-self: end; margin: 0.75rem 0 0; font-size: var(--sc-t-xs); color: color-mix(in oklab, var(--sc-ink-soft) 75%, transparent); }
+  @media (prefers-reduced-motion: reduce) { .pbl.is-in { animation: none; } .fw__lab { transition: none; } }
+
+  /* --------------------------------------------------------- boundary -- */
+  .bd .sc-stage { background: transparent; }
+  .bd__inner { position: absolute; inset: 0; padding: calc(var(--ml-bar) + clamp(0.75rem, 2.5vh, 1.75rem)) var(--sc-gutter) clamp(1.5rem, 4vh, 3rem); display: grid; grid-template-columns: minmax(0, 6.6fr) minmax(0, 4.4fr); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: 'head head' 'fig card'; gap: var(--sc-5) clamp(2rem, 4vw, 4rem); align-items: center; }
+  .bd__head { grid-area: head; display: grid; grid-template-columns: minmax(0, 6.6fr) minmax(0, 4.4fr); gap: clamp(2rem, 4vw, 4rem); align-items: end; }
+  .bd__head .sc-display--md { font-size: var(--sc-t-xl); max-width: 22ch; text-wrap: balance; }
+  .bd__head .sc-body { font-size: var(--sc-t-sm); max-width: 44ch; }
+  .bd__fig { grid-area: fig; margin: 0; width: 100%; align-self: center; display: grid; gap: 0.6rem; }
+  .bd__scene { position: relative; width: 100%; aspect-ratio: 16 / 9.2; }
+  .bd__scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; }
+  .bd__labels { position: absolute; inset: 0; pointer-events: none; }
+  .bd__lab { position: absolute; transform: translate(-50%, -50%); display: grid; gap: 0.05rem; font-family: var(--sc-font-display); font-weight: 500; font-size: clamp(0.72rem, 0.95vw, 0.88rem); color: var(--sc-ink); white-space: nowrap; line-height: 1.15; transition: color 300ms var(--sc-ease-out), opacity 300ms var(--sc-ease-out); }
+  .bd__lab small { font-family: var(--sc-font-mono); font-size: 0.58rem; letter-spacing: 0.02em; color: var(--sc-ink-soft); font-weight: 400; }
+  .bd__lab--op { transform: translate(-100%, -50%); justify-items: end; text-align: right; }
+
+  .bd__lab--op.is-active b { color: var(--sc-accent); }
+  .bd__lab--wall { transform: translate(-50%, -100%); justify-items: center; text-align: center; }
+  .bd__lab--wall b { font-size: clamp(0.9rem, 1.2vw, 1.1rem); }
+  .bd__lab--wall small { display: inline-flex; align-items: center; gap: 0.3rem; }
+  .bd__lab--wall i, .bd__meter-legend i { display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; }
+  .l-ai { background: var(--sc-accent); } .l-rule, .l-hold { background: #F3C969; } .l-ext { background: color-mix(in oklab, var(--sc-ink) 45%, transparent); }
+  .bd__lab--bin { transform: translate(0, -50%); justify-items: start; color: var(--sc-ink-soft); }
+  .bd__lab--bin.is-active { color: var(--sc-ink); }
+  .bd__lab--ext { transform: translate(-50%, 0); justify-items: center; text-align: center; opacity: 0.35; }
+  .bd__lab--ext.is-on { opacity: 1; }
+  .bd__lab--ext.is-on b { color: var(--sc-ink); }
+  .bd__meter { display: grid; gap: 0.55rem; padding: 0.7rem 0.9rem; border-radius: 12px; background: color-mix(in oklab, var(--sc-surface) 85%, transparent); box-shadow: var(--sc-e2), var(--sc-edge); }
+  .bd__meter-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sc-4) var(--sc-5); flex-wrap: wrap; font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); color: var(--sc-ink); }
+  .bd__meter-bar { position: relative; height: 10px; border-radius: 5px; background: color-mix(in oklab, var(--sc-ink) 10%, transparent); overflow: visible; }
+  .bd__seg { position: absolute; inset: 0; display: flex; border-radius: 5px; overflow: hidden; }
+  .bd__seg i { display: block; height: 100%; transition: width 420ms var(--sc-ease-out); }
+  .bd__seg .s-c { background: var(--sc-accent); } .bd__seg .s-h { background: #F3C969; } .bd__seg .s-e { background: color-mix(in oklab, var(--sc-ink) 45%, transparent); }
+  .bd__meter-limit { position: absolute; top: -6px; bottom: -6px; width: 2px; background: var(--sc-ink); border-radius: 1px; }
+  .bd__meter-limit small { position: absolute; top: 0.9rem; left: 50%; transform: translateX(-50%); font-family: var(--sc-font-mono); font-size: 0.56rem; letter-spacing: var(--sc-track-wide); text-transform: uppercase; color: var(--sc-ink-soft); }
+  .bd__meter-legend { display: flex; gap: var(--sc-4); font-family: var(--sc-font-mono); font-size: 0.6rem; color: var(--sc-ink-soft); }
+  .bd__meter-legend span { display: inline-flex; align-items: center; gap: 0.3rem; }
+  .bd__card { grid-area: card; position: relative; align-self: stretch; display: grid; grid-template-rows: minmax(0, 1fr) auto; align-content: stretch; }
+  .bd__panel { grid-area: 1 / 1; align-self: center; position: relative; display: grid; align-content: start; gap: var(--sc-4); padding: var(--sc-6) var(--sc-5); border-radius: 16px; background: color-mix(in oklab, var(--sc-surface) 90%, transparent); box-shadow: var(--sc-e3), inset 0 0 0 1px color-mix(in oklab, var(--sc-accent) 20%, transparent); opacity: 0; transform: translateY(10px); transition: opacity 320ms var(--sc-ease-out), transform 320ms var(--sc-ease-out); pointer-events: none; }
+  .bd__panel.is-on { opacity: 1; transform: none; pointer-events: auto; }
+  .bd__req { display: grid; grid-template-columns: minmax(0, 1fr); row-gap: 0.4rem; justify-items: start; }
+  .bd__op { justify-self: start; font-family: var(--sc-font-mono); font-size: 0.6rem; letter-spacing: var(--sc-track-wide); text-transform: uppercase; color: var(--sc-accent); padding: 0.3rem 0.55rem; border-radius: 999px; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-accent) 40%, transparent); white-space: nowrap; }
+  .bd__op--external { color: var(--sc-ink-soft); box-shadow: inset 0 0 0 1px var(--sc-hairline-strong); }
+  .bd__req b { font-family: var(--sc-font-display); font-weight: 500; font-size: var(--sc-t-lg); letter-spacing: var(--sc-track-snug); line-height: 1.15; text-wrap: pretty; }
+  .bd__req small { font-family: var(--sc-font-mono); font-size: 0.62rem; letter-spacing: 0.02em; color: var(--sc-ink-soft); }
+  .bd__ctx { margin: 0; color: var(--sc-ink-soft); font-size: var(--sc-t-sm); line-height: 1.5; text-wrap: pretty; }
+  .bd__j { margin: 0; display: grid; gap: 0.35rem; }
+  .bd__j > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.75rem; align-items: center; padding: 0.5rem 0; border-top: 1px solid var(--ml-line); opacity: 0.5; transition: opacity 260ms var(--sc-ease-out); }
+  .bd__j > div.is-on, .bd__res.is-on, .bd__flip.is-on { opacity: 1; }
+  .bd__j dt { font-family: var(--sc-font-display); font-weight: 500; font-size: 0.82rem; color: var(--sc-ink-soft); }
+  .bd__j dd { margin: 0; justify-self: end; }
+  .bd__pill { display: inline-flex; align-items: center; padding: 0.28rem 0.6rem; border-radius: 999px; font-family: var(--sc-font-mono); font-size: 0.62rem; letter-spacing: 0.02em; color: var(--sc-ink); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-ink) 18%, transparent); white-space: nowrap; }
+  .bd__pill.is-ok { color: var(--sc-accent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-accent) 50%, transparent); background: color-mix(in oklab, var(--sc-accent) 9%, transparent); }
+  .bd__pill.is-warn { color: #F3C969; box-shadow: inset 0 0 0 1px color-mix(in oklab, #F3C969 50%, transparent); background: color-mix(in oklab, #F3C969 8%, transparent); }
+  .bd__pill.is-gap { color: var(--sc-ink-soft); }
+  .bd__res { margin: 0; font-size: var(--sc-t-sm); line-height: 1.5; color: var(--sc-ink); opacity: 0.5; transition: opacity 260ms var(--sc-ease-out); text-wrap: pretty; }
+  .bd__flip { margin: 0; padding: 0.5rem 0.7rem; border-radius: 8px; background: color-mix(in oklab, #F3C969 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, #F3C969 40%, transparent); font-family: var(--sc-font-mono); font-size: 0.66rem; color: var(--sc-ink); opacity: 0; transition: opacity 260ms var(--sc-ease-out); }
+  .bd__flip b { color: #F3C969; font-weight: 500; letter-spacing: var(--sc-track-wide); text-transform: uppercase; font-size: 0.58rem; margin-right: 0.4rem; }
+  .bd__byline { grid-area: 2 / 1; align-self: end; margin: 0.75rem 0 0; font-size: var(--sc-t-xs); color: color-mix(in oklab, var(--sc-ink-soft) 75%, transparent); }
+  .no-webgl .bd__scene { background: radial-gradient(closest-side, color-mix(in oklab, var(--sc-accent) 10%, transparent), transparent 70%); }
+  @media (prefers-reduced-motion: reduce) { .bd__panel, .bd__j > div, .bd__res, .bd__flip, .bd__meter-bar i, .bd__lab { transition: none; } }
+
+  /* --------------------------------------------------------- snapshot -- */
+  .snap { position: relative; min-height: 230vh; --k: clamp(0, calc((var(--sc-p, 0) - 0.2) / 0.28), 1); --k2: clamp(0, calc((var(--sc-p, 0) - 0.46) / 0.08), 1); }
+  .snap__stage { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; align-items: center; overflow: clip; }
+  .snap__grid { display: grid; grid-template-columns: minmax(0, 4.6fr) minmax(0, 7.4fr); gap: clamp(1.75rem, 3vw, 3rem); align-items: center; padding-right: var(--sc-gutter); }
+  .snap__copy { align-self: center; }
+  .snap__copy .sc-display--lg { max-width: 14ch; font-size: clamp(1.95rem, 1.05rem + 2.7vw, 3.3rem); text-wrap: balance; }
+  .snap__copy .sc-body { margin-top: var(--sc-5); max-width: 36ch; }
+  .snap__legend { list-style: none; margin: var(--sc-6) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; max-width: 30rem; }
+  .snap__legend li { font-family: var(--sc-font-mono); font-size: 0.62rem; letter-spacing: var(--sc-track-wide); text-transform: uppercase; color: color-mix(in oklab, var(--sc-ink-soft) 85%, transparent); padding: 0.28rem 0.55rem; border-radius: 999px; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-ink) 11%, transparent); }
+  .snap__fig { position: relative; margin: 0; aspect-ratio: 1 / 0.92; max-height: 76vh; width: 100%; justify-self: center; display: grid; place-items: center; --tw: clamp(8.6rem, 11vw, 10rem); --r: calc(var(--tw) * 1.06); }
+  .snap__ring { position: absolute; width: calc(var(--r) * 4.25); height: calc(var(--r) * 3.7); border-radius: 7%; border: 1px dashed color-mix(in oklab, var(--sc-accent) 34%, transparent); opacity: calc(var(--k2) * 0.85); transform: scale(calc(0.97 + var(--k2) * 0.03)); }
+  .snap__core { position: relative; z-index: 2; width: clamp(11.5rem, 16vw, 14.5rem); padding: 1rem 1rem 0.9rem; border-radius: 14px; background: color-mix(in oklab, var(--sc-surface) 92%, var(--sc-accent)); box-shadow: var(--sc-e3), inset 0 0 0 1px color-mix(in oklab, var(--sc-accent) 30%, transparent); display: grid; gap: 0.35rem; text-align: left; }
+  .snap__core .sc-label { color: var(--sc-accent); }
+  .snap__core b { font-family: var(--sc-font-display); font-weight: 500; font-size: 1.05rem; line-height: 1.15; letter-spacing: var(--sc-track-snug); }
+  .snap__core small { font-size: 0.66rem; color: var(--sc-ink-soft); }
+  .snap__stamp { display: inline-flex; align-items: center; gap: 0.35rem; margin-top: 0.4rem; font-family: var(--sc-font-mono); font-size: 0.6rem; letter-spacing: var(--sc-track-wide); text-transform: uppercase; color: var(--sc-accent); opacity: var(--k2); transform: translateY(calc((1 - var(--k2)) * 4px)); }
+  .snap__stamp svg { width: 0.9rem; height: 0.9rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .snap__tiles { list-style: none; margin: 0; padding: 0; position: absolute; inset: 0; }
+  /* the ten conditions sit on a deliberate frame around the decision — two above,
+     two below, three down each side — and draw inwards as the section settles */
+  @property --ml-float { syntax: "<length>"; inherits: false; initial-value: 0px; }
+  @keyframes ct-float { 0%, 100% { --ml-float: 0px; } 50% { --ml-float: -5px; } }
+  .ct {
+    --sp: calc(1.17 - var(--k) * 0.17);
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%) translate(calc(var(--px) * var(--r) * var(--sp)), calc(var(--py) * var(--r) * var(--sp) + var(--ml-float)));
+    animation: ct-float 5.6s ease-in-out infinite; animation-delay: calc(var(--i) * -0.7s);
+    opacity: calc(0.42 + var(--k) * 0.58);
+    display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 0.5rem; align-items: center;
+    width: var(--tw); min-height: 3.45rem; align-content: center; padding: 0.48rem 0.55rem; border-radius: 11px;
+    background: color-mix(in oklab, var(--sc-surface) 92%, transparent); backdrop-filter: blur(6px);
+    box-shadow: var(--sc-e2), inset 0 0 0 1px color-mix(in oklab, var(--sc-ink) 10%, transparent);
+    font-size: 0.66rem; will-change: transform;
+  }
+  .ct__i { grid-row: 1 / span 2; width: 1.5rem; height: 1.5rem; display: grid; place-items: center; border-radius: 7px; background: color-mix(in oklab, var(--sc-accent) 12%, transparent); color: var(--sc-accent); }
+  .ct__i svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .ct__t { display: grid; line-height: 1.2; min-width: 0; }
+  .ct__t b { font-weight: 500; color: var(--sc-ink); font-size: 0.68rem; }
+  .ct__t small { font-family: var(--sc-font-mono); font-size: 0.58rem; line-height: 1.3; color: var(--sc-ink-soft); }
+  .ct__bar { grid-column: 2; height: 3px; border-radius: 2px; background: color-mix(in oklab, var(--sc-ink) 12%, transparent); overflow: hidden; margin-top: 0.3rem; }
+  .ct__bar i { display: block; height: 100%; background: var(--sc-accent); }
+  .ct__spark { grid-column: 2; width: 100%; height: 0.8rem; margin-top: 0.25rem; }
+  .ct__spark path { fill: none; stroke: var(--sc-accent); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+  .ct__dot { grid-column: 2; margin-top: 0.3rem; width: 0.45rem; height: 0.45rem; border-radius: 50%; background: var(--sc-ink-soft); }
+  .ct__dot.is-ok { background: var(--sc-accent); } .ct__dot.is-warn { background: #F3C969; } .ct__dot.is-off { background: color-mix(in oklab, var(--sc-ink) 25%, transparent); }
+
+  /* ------------------------------------------------------------ agents -- */
+  .agents { position: relative; min-height: 100svh; padding-block: var(--sc-10); overflow: clip; }
+  .agents__plate { position: absolute; inset: 0; margin: 0; z-index: 0; }
+  .agents__plate img { width: 100%; height: 100%; object-fit: cover; object-position: 70% 50%; }
+  .agents__scrim { position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, color-mix(in oklab, var(--sc-canvas) 96%, transparent) 0%, color-mix(in oklab, var(--sc-canvas) 88%, transparent) 40%, color-mix(in oklab, var(--sc-canvas) 78%, transparent) 66%, color-mix(in oklab, var(--sc-canvas) 30%, transparent) 84%, transparent 100%); }
+  .agents__copy { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: var(--sc-8); align-items: start; }
+  .agents__copy .sc-body { margin-top: var(--sc-5); }
+  .ladder { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ml-line); }
+  .ladder li { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sc-2); padding: var(--sc-5) 0; border-bottom: 1px solid var(--ml-line); }
+  .ladder h3 { font-family: var(--sc-font-display); font-weight: 500; font-size: var(--sc-t-lg); letter-spacing: var(--sc-track-snug); margin: 0; }
+  .ladder p { margin: 0; color: var(--sc-ink-soft); font-size: var(--sc-t-sm); line-height: 1.5; }
+  .ladder li.is-entry { position: relative; }
+  .ladder li.is-entry h3::after { content: "agents enter here"; display: block; margin-top: 0.35rem; font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); letter-spacing: var(--sc-track-wide); text-transform: uppercase; color: var(--sc-accent); }
+
+  @media (max-width: 1400px) {
+    .proof div { grid-template-columns: minmax(0, 1fr); gap: var(--sc-1); }
+  }
+
+  /* ----------------------------------------------------------- forwhom -- */
+  .forwhom { padding-block: var(--sc-10); }
+  .forwhom__head { max-width: 30ch; }
+  .forwhom__grid { margin-top: var(--sc-8); display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: var(--sc-7) var(--sc-9); }
+  .block { display: contents; }
+  .block h3 { font-family: var(--sc-font-display); font-weight: 500; font-size: var(--sc-t-xl); letter-spacing: var(--sc-track-snug); line-height: 1.08; margin: 0; padding-top: var(--sc-4); border-top: 1px solid var(--ml-line); }
+  .block > div { padding-top: var(--sc-4); border-top: 1px solid var(--ml-line); }
+  .block .sc-body + .sc-body { margin-top: var(--sc-4); }
+  .promises { margin: 0; padding: 0; list-style: none; counter-reset: p; display: grid; gap: var(--sc-3); }
+  .promises li { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr); gap: var(--sc-3); color: var(--sc-ink-soft); text-wrap: pretty; }
+  .promises li::before { counter-increment: p; content: counter(p); font-family: var(--sc-font-mono); font-size: var(--sc-t-xs); color: var(--sc-accent); padding-top: 0.35em; }
+  .proof { margin: 0; display: grid; gap: 0; }
+  .proof div { display: grid; grid-template-columns: 8rem minmax(0, 1fr); gap: var(--sc-4); padding: var(--sc-3) 0; }
+  .proof div + div { border-top: 1px solid var(--ml-line); }
+  .proof div:first-child { padding-top: 0; }
+  .proof dt { font-family: var(--sc-font-display); font-weight: 500; color: var(--sc-ink); }
+  .proof dd { margin: 0; color: var(--sc-ink-soft); font-size: var(--sc-t-sm); line-height: 1.55; }
+  .invariant { margin-top: var(--sc-9); padding: var(--sc-6) 0 0; border-top: 1px solid var(--ml-line); display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: var(--sc-7) var(--sc-9); }
+  .invariant p { font-family: var(--sc-font-display); font-size: var(--sc-t-lg); line-height: 1.3; letter-spacing: var(--sc-track-snug); margin: 0; max-width: 36ch; }
+
+  /* ------------------------------------------------------------ close -- */
+  .close .sc-stage { background: var(--sc-canvas); }
+  .close__far { position: absolute; inset: -6% -3%; }
+  .close__far img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 70%; max-width: none; opacity: 0.85; }
+  .close__scene { position: absolute; inset: 0; z-index: 1; }
+  .close__scene canvas, .close__scene picture, .close__scene img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; }
+  .close__poster { object-fit: cover; display: none; }
+  .no-webgl .close__poster { display: block; object-fit: contain; }
+  .no-webgl .close__scene canvas { display: none; }
+  .close__scrim { z-index: 2; background: linear-gradient(to bottom right, color-mix(in oklab, var(--sc-canvas) 92%, transparent) 0%, color-mix(in oklab, var(--sc-canvas) 70%, transparent) 28%, transparent 55%); }
+  .close__floor { position: absolute; inset: auto 0 0 0; height: 45%; background: linear-gradient(to top, var(--sc-canvas) 30%, transparent); z-index: 2; }
+  .close__inner { position: absolute; inset: 0; z-index: 3; padding: calc(var(--ml-bar) + clamp(1.5rem, 4vh, 3rem)) var(--sc-gutter) clamp(5rem, 12vh, 8rem); display: grid; align-content: center; }
+  .close__copy { width: fit-content; max-width: min(34rem, 46vw); }
+  .close__copy .sc-display--lg { max-width: 11ch; }
+  .close__copy .sc-body { margin-top: var(--sc-5); max-width: 34ch; }
+  .close__copy .cta { margin-top: var(--sc-6); }
+  .foot { position: absolute; z-index: 4; inset: auto var(--sc-gutter) clamp(1.25rem, 3vh, 2rem); display: flex; justify-content: space-between; align-items: end; gap: var(--sc-5); font-size: var(--sc-t-xs); color: var(--sc-ink-soft); flex-wrap: wrap; }
+  .foot a { color: inherit; }
+
+  /* --------------------------- the decision-loop panel (docked) -- */
+  .pb {
+    position: fixed; z-index: 55; right: clamp(0.9rem, 1.8vw, 1.75rem); top: 50%; transform: translateY(-50%) translateX(8px);
+    width: clamp(18.5rem, 20vw, 22rem);
+    background: linear-gradient(165deg, color-mix(in oklab, var(--sc-surface) 92%, var(--sc-accent)) 0%, color-mix(in oklab, var(--sc-surface) 96%, transparent) 40%, color-mix(in oklab, var(--sc-canvas) 92%, transparent) 100%);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border-radius: 20px;
+    box-shadow: 0 24px 60px -26px color-mix(in oklab, var(--sc-accent) 38%, transparent), 0 10px 30px -10px hsl(var(--sc-shadow-color) / 0.7), var(--sc-edge);
+    padding: 1rem 1rem 0.95rem;
+    font-family: var(--sc-font-text); font-size: 0.78rem; line-height: 1.35;
+    opacity: 0; pointer-events: none;
+    transition: opacity 360ms var(--sc-ease-out), transform 360ms var(--sc-ease-out);
+    isolation: isolate;
+  }
+  .pb.is-on { opacity: 1; pointer-events: auto; transform: translateY(-50%) translateX(0); }
+  /* the glowing rim: a slowly turning conic light, masked to a 1px ring */
+  .pb::before {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; z-index: -1;
+    background: conic-gradient(from var(--pb-a, 0deg), transparent 0 20%, color-mix(in oklab, var(--sc-accent) 70%, white) 31%, transparent 42%, transparent 62%, color-mix(in oklab, var(--sc-accent) 32%, transparent) 73%, transparent 84%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    animation: pb-turn 7s linear infinite;
+  }
+  @property --pb-a { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+  @keyframes pb-turn { to { --pb-a: 360deg; } }
+  .pb__aura { position: absolute; inset: -20% -30% auto -30%; height: 70%; z-index: -2; pointer-events: none; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in oklab, var(--sc-accent) 22%, transparent), transparent 70%); filter: blur(18px); }
+  .pb__head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.65rem; padding-bottom: 0.85rem; border-bottom: 1px solid color-mix(in oklab, var(--sc-ink) 9%, transparent); }
+  .pb__orb { display: grid; place-items: center; width: 2.15rem; height: 2.15rem; border-radius: 50%; color: var(--sc-accent); background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--sc-accent) 30%, transparent), transparent 70%), color-mix(in oklab, var(--sc-canvas) 70%, transparent); box-shadow: 0 6px 14px -6px color-mix(in oklab, var(--sc-accent) 70%, transparent), var(--sc-edge); }
+  .pb__orb svg, .pb__orb img { width: 1.4rem; height: 1.4rem; object-fit: contain; }
+  .pb__title { display: grid; gap: 0.1rem; min-width: 0; }
+  .pb__title b { font-family: var(--sc-font-display); font-weight: 500; font-size: 0.9rem; letter-spacing: -0.01em; color: var(--sc-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pb__title small { font-size: 0.64rem; color: var(--sc-ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pb .pb__title small { font-family: var(--sc-font-mono); font-size: 0.56rem; letter-spacing: 0.04em; text-transform: uppercase; color: color-mix(in oklab, var(--sc-ink-soft) 85%, transparent); }
+  .pb__dots { list-style: none; margin: 0.75rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; }
+  .pb__dots li { height: 3px; border-radius: 2px; background: color-mix(in oklab, var(--sc-ink) 14%, transparent); transition: background-color 300ms var(--sc-ease-out); }
+  .pb__dots li.is-on { background: var(--sc-accent); }
+  .pb__feed { display: grid; gap: 0.4rem; margin-top: 0.7rem; }
+  .pbi { display: inline-grid; place-items: center; width: 1.35rem; height: 1.35rem; flex: 0 0 auto; color: var(--sc-accent); }
+  .pbi svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .pbi--step { width: 1.7rem; height: 1.7rem; border-radius: 8px; background: color-mix(in oklab, var(--sc-accent) 12%, transparent); padding: 0.28rem; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-accent) 25%, transparent); }
+  /* collapsed earlier steps */
+  /* the current step */
+  @keyframes pb-in { from { opacity: 0; transform: translateY(8px) scale(0.985); } to { opacity: 1; transform: none; } }
+  /* the teaser shown in the rail outside the loop */
+  .pb__dots li.is-focus { box-shadow: 0 0 0 1px color-mix(in oklab, var(--sc-accent) 60%, transparent); }
+  /* the visuals */
+  .pbv { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.5rem; margin-top: 0.1rem; font-size: 0.66rem; color: var(--sc-ink-soft); }
+  .pbv small { font-size: 0.64rem; color: var(--sc-ink-soft); }
+  .pbv__num { font-family: var(--sc-font-display); font-weight: 500; font-size: 1.6rem; letter-spacing: var(--sc-track-snug); color: var(--sc-ink); line-height: 1; }
+  .pbv__cities { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .pbv__city { display: inline-flex; align-items: center; gap: 0.2rem; font-family: var(--sc-font-mono); font-size: 0.62rem; color: var(--sc-ink); }
+  .pbv__city i { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--sc-accent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--sc-accent) 18%, transparent); }
+  .pbv--channels { gap: 0.3rem; }
+  .pbv__ch { display: inline-grid; justify-items: center; gap: 0.15rem; padding: 0.3rem 0.35rem 0.25rem; border-radius: 8px; background: color-mix(in oklab, var(--sc-ink) 5%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-ink) 10%, transparent); }
+  .pbv__ch .pbi { width: 1.1rem; height: 1.1rem; color: var(--sc-ink); }
+  .pbv__ch small { font-size: 0.56rem; letter-spacing: 0.02em; }
+  .pbv__ch--q { box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-accent) 55%, transparent); background: color-mix(in oklab, var(--sc-accent) 10%, transparent); }
+  .pbv__ch--q .pbi, .pbv__ch--q small { color: var(--sc-accent); }
+  .pbv--spark { display: grid; gap: 0.25rem; }
+  .pbv__spark { width: 100%; height: 2.4rem; display: block; overflow: visible; }
+  .pbv__line { fill: none; stroke: var(--sc-accent); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+  .pbv__area { fill: url(#pb-fade); fill: color-mix(in oklab, var(--sc-accent) 14%, transparent); }
+  .pbv__band { fill: color-mix(in oklab, var(--sc-accent) 9%, transparent); }
+  .pbv__dot { fill: var(--sc-accent); stroke: var(--sc-canvas); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+  .pbv__ring { display: inline-flex; align-items: center; gap: 0.3rem; font-family: var(--sc-font-mono); font-size: 0.62rem; color: var(--sc-ink); }
+  .pbv__ring svg { width: 1.5rem; height: 1.5rem; }
+  .pbv__ring-bg { fill: none; stroke: color-mix(in oklab, var(--sc-ink) 14%, transparent); stroke-width: 3; }
+  .pbv__ring-fg { fill: none; stroke: var(--sc-accent); stroke-width: 3; stroke-linecap: round; }
+  .pbv__ring b { font-weight: 500; }
+  .pbv__chip { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.22rem 0.5rem 0.22rem 0.35rem; border-radius: 999px; font-family: var(--sc-font-mono); font-size: 0.6rem; letter-spacing: 0.02em; color: var(--sc-ink); background: color-mix(in oklab, var(--sc-ink) 6%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-ink) 12%, transparent); white-space: nowrap; }
+  .pbv__chip .pbi { width: 0.9rem; height: 0.9rem; color: var(--sc-ink-soft); }
+  .pbv__chip.is-on { box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-accent) 40%, transparent); }
+  .pbv__chip.is-on .pbi { color: var(--sc-accent); }
+  .pbv__chip.is-ok { color: var(--sc-accent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-accent) 45%, transparent); background: color-mix(in oklab, var(--sc-accent) 10%, transparent); }
+  .pbv__chip.is-warn { color: #F3C969; box-shadow: inset 0 0 0 1px color-mix(in oklab, #F3C969 45%, transparent); }
+  .pbv__chip.is-gap { color: var(--sc-ink-soft); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-ink) 18%, transparent); border-style: dashed; }
+  .pbv--bars { display: grid; gap: 0.3rem; width: 100%; }
+  .pbv__bar { display: grid; grid-template-columns: 4.6rem minmax(0, 1fr) auto; align-items: center; gap: 0.4rem; font-family: var(--sc-font-mono); font-size: 0.6rem; }
+  .pbv__bar-l { color: var(--sc-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pbv__bar-t { height: 5px; border-radius: 3px; background: color-mix(in oklab, var(--sc-ink) 10%, transparent); overflow: hidden; }
+  .pbv__bar-t i { display: block; height: 100%; border-radius: 3px; background: var(--sc-accent); }
+  .pbv__bar.is-warn .pbv__bar-t i { background: #F3C969; }
+  .pbv__bar.is-gap .pbv__bar-t i { background: repeating-linear-gradient(90deg, var(--sc-ink-soft) 0 3px, transparent 3px 6px); }
+  .pbv__bar-n { color: var(--sc-ink-soft); white-space: nowrap; }
+  .pbv--phase { display: grid; gap: 0.28rem; width: 100%; }
+  .pbv__ph { display: grid; grid-template-columns: 3.4rem minmax(0, 1fr) auto; align-items: center; gap: 0.4rem; font-family: var(--sc-font-mono); font-size: 0.6rem; color: var(--sc-ink); }
+  .pbv__ph i { display: block; height: 7px; border-radius: 4px; background: var(--sc-accent); }
+  .pbv__ph i.hold { background: repeating-linear-gradient(90deg, color-mix(in oklab, var(--sc-ink) 35%, transparent) 0 4px, transparent 4px 8px); }
+  .pbv__ph i.pilot { background: color-mix(in oklab, var(--sc-accent) 55%, transparent); }
+  .pbv__ph small { color: var(--sc-ink-soft); }
+  .pbv--track { display: grid; gap: 0.3rem; width: 100%; }
+  .pbv__seg { display: flex; height: 8px; border-radius: 4px; overflow: hidden; gap: 2px; }
+  .pbv__seg i.a { background: var(--sc-accent); } .pbv__seg i.b { background: color-mix(in oklab, var(--sc-accent) 45%, transparent); } .pbv__seg i.c { background: #F3C969; }
+  .pbv--track small { display: flex; gap: 0.6rem; font-family: var(--sc-font-mono); font-size: 0.58rem; }
+  .pbv--track small b { display: inline-block; width: 0.5rem; height: 0.5rem; border-radius: 2px; margin-right: 0.25rem; vertical-align: -1px; }
+  .pbv--track small b.a { background: var(--sc-accent); } .pbv--track small b.b { background: color-mix(in oklab, var(--sc-accent) 45%, transparent); } .pbv--track small b.c { background: #F3C969; }
+  .pbv--snap { display: grid; grid-template-columns: repeat(5, auto); justify-content: start; gap: 0.3rem; }
+  .pbv--snap small { grid-column: 1 / -1; }
+  .pbv__cond { position: relative; display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 7px; background: color-mix(in oklab, var(--sc-ink) 6%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sc-ink) 10%, transparent); }
+  .pbv__cond .pbi { width: 0.95rem; height: 0.95rem; color: var(--sc-ink); }
+  .pbv__cond i { position: absolute; right: -2px; top: -2px; width: 0.4rem; height: 0.4rem; border-radius: 50%; background: var(--sc-accent); box-shadow: 0 0 0 2px var(--sc-surface); }
+  .pbv__cond.is-warn i { background: #F3C969; } .pbv__cond.is-off i { background: color-mix(in oklab, var(--sc-ink) 30%, transparent); }
+
+  /* the dialog: everything, with the visuals */
+  /* ------------------------------------------------- the sandbox -- */
+  /* idle state: the mark, with the six stages orbiting, until the visitor runs the loop */
+
+  /* the close stage: the full playbook in place */
+
+
+  /* ------------------------------------------------- the lead form -- */
+  .lead { border: 0; padding: 0; margin: auto; width: min(38rem, calc(100vw - 2rem)); max-height: min(92vh, 60rem); background: transparent; color: var(--sc-ink); overflow: visible; }
+  .lead::backdrop { background: color-mix(in oklab, var(--sc-canvas) 74%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .lead[open] { animation: lead-in 360ms var(--sc-ease-out); }
+  .lead[open]::backdrop { animation: lead-fade 360ms var(--sc-ease-out); }
+  @keyframes lead-in { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
+  @keyframes lead-fade { from { opacity: 0; } to { opacity: 1; } }
+  .lead__form { position: relative; padding: clamp(1.5rem, 3vw, 2.4rem) clamp(1.4rem, 3vw, 2.4rem) clamp(1.4rem, 3vw, 2.2rem); border-radius: 20px; background: linear-gradient(165deg, color-mix(in oklab, var(--sc-surface) 92%, var(--sc-accent)) 0%, var(--sc-surface) 38%, color-mix(in oklab, var(--sc-canvas) 82%, var(--sc-surface)) 100%); box-shadow: var(--sc-e3), 0 30px 90px -30px color-mix(in oklab, var(--sc-accent) 40%, transparent), var(--sc-edge); display: grid; gap: var(--sc-5); max-height: inherit; overflow: auto; }
+  .lead__close { all: unset; cursor: pointer; position: absolute; top: 0.9rem; right: 0.9rem; width: 2.2rem; height: 2.2rem; display: grid; place-items: center; border-radius: 50%; color: var(--sc-ink-soft); box-shadow: inset 0 0 0 1px var(--sc-hairline); transition: background-color 140ms var(--sc-ease-out), color 140ms var(--sc-ease-out); }
+  .lead__close:hover { background: color-mix(in oklab, var(--sc-ink) 8%, transparent); color: var(--sc-ink); }
+  .lead__close:focus-visible { outline: 2px solid var(--sc-accent); outline-offset: 2px; }
+  .lead__close svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  .lead__head { display: grid; gap: var(--sc-3); padding-right: 2.5rem; }
+  .lead__kicker { color: var(--sc-accent); }
+  .lead__title { margin: 0; font-family: var(--sc-font-display); font-weight: 500; font-size: clamp(1.45rem, 1.1rem + 1.2vw, 2rem); line-height: 1.1; letter-spacing: var(--sc-track-snug); text-wrap: balance; }
+  .lead__sub { margin: 0; color: var(--sc-ink-soft); font-size: var(--sc-t-sm); line-height: 1.55; max-width: 48ch; }
+  .lead__grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sc-4); }
+  .lead__field { display: grid; gap: 0.4rem; min-width: 0; }
+  .lead__field--wide { grid-column: 1 / -1; }
+  .lead__field > span { font-family: var(--sc-font-mono); font-size: 0.62rem; letter-spacing: var(--sc-track-wide); text-transform: uppercase; color: var(--sc-ink-soft); display: flex; justify-content: space-between; gap: 0.5rem; }
+  .lead__field em { font-style: normal; text-transform: none; letter-spacing: 0.02em; color: color-mix(in oklab, var(--sc-ink-soft) 70%, transparent); }
+  .lead__field input { all: unset; box-sizing: border-box; width: 100%; padding: 0.78rem 0.9rem; border-radius: 10px; font-family: var(--sc-font-text); font-size: var(--sc-t-base); color: var(--sc-ink); background: color-mix(in oklab, var(--sc-canvas) 60%, transparent); box-shadow: inset 0 0 0 1px var(--sc-hairline-strong); transition: box-shadow 140ms var(--sc-ease-out), background-color 140ms var(--sc-ease-out); }
+  .lead__field input::placeholder { color: color-mix(in oklab, var(--sc-ink-soft) 55%, transparent); }
+  .lead__field input:focus-visible { box-shadow: inset 0 0 0 1px var(--sc-accent), 0 0 0 3px color-mix(in oklab, var(--sc-accent) 22%, transparent); background: color-mix(in oklab, var(--sc-canvas) 40%, transparent); }
+  .lead__field.is-invalid input { box-shadow: inset 0 0 0 1px #F3C969, 0 0 0 3px color-mix(in oklab, #F3C969 18%, transparent); }
+  .lead__error { margin: -0.5rem 0 0; padding: 0.7rem 0.9rem; border-radius: 10px; font-size: var(--sc-t-sm); line-height: 1.45; color: var(--sc-ink); background: color-mix(in oklab, #F3C969 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, #F3C969 45%, transparent); }
+  .lead__error[hidden] { display: none; }
+  .lead__actions { display: flex; align-items: center; gap: var(--sc-5); flex-wrap: wrap; }
+  .lead__submit { position: relative; min-width: 14rem; justify-content: center; }
+  .lead__submit[disabled] { cursor: progress; opacity: 0.8; }
+  .lead__submit.is-busy span { visibility: hidden; }
+  .lead__submit.is-busy::after { content: ""; position: absolute; width: 1.1rem; height: 1.1rem; border-radius: 50%; border: 2px solid color-mix(in oklab, var(--sc-accent-ink) 25%, transparent); border-top-color: var(--sc-accent-ink); animation: lead-spin 720ms linear infinite; }
+  @keyframes lead-spin { to { transform: rotate(360deg); } }
+  .lead__fine { font-family: var(--sc-font-mono); font-size: 0.62rem; letter-spacing: 0.02em; color: color-mix(in oklab, var(--sc-ink-soft) 75%, transparent); }
+  .lead__done { display: grid; justify-items: start; gap: var(--sc-3); padding-top: var(--sc-2); }
+  .lead__done[hidden] { display: none; }
+  .lead__check { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 50%; color: var(--sc-accent-ink); background: var(--sc-accent); box-shadow: 0 0 0 6px color-mix(in oklab, var(--sc-accent) 18%, transparent); margin-bottom: var(--sc-2); }
+  .lead__check svg { width: 1.3rem; height: 1.3rem; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .lead__done h3 { margin: 0; font-family: var(--sc-font-display); font-weight: 500; font-size: var(--sc-t-xl); letter-spacing: var(--sc-track-snug); line-height: 1.1; }
+  .lead__done p { margin: 0; color: var(--sc-ink-soft); font-size: var(--sc-t-sm); line-height: 1.55; max-width: 44ch; }
+  .lead__done .cta { margin-top: var(--sc-3); }
+  .lead.is-done .lead__grid, .lead.is-done .lead__actions, .lead.is-done .lead__error, .lead.is-done .lead__head { display: none; }
+  html.lead-open { overflow: hidden; }
+  @media (max-width: 560px) { .lead__grid { grid-template-columns: 1fr; } .lead__actions { flex-direction: column; align-items: stretch; } .lead__submit { min-width: 0; } }
+  @media (prefers-reduced-motion: reduce) { .lead[open], .lead[open]::backdrop { animation: none; } }
+
+  /* ----------------------------------------------------------- mobile -- */
+  @media (max-width: 860px) {
+    .bar { padding: var(--sc-3) var(--sc-gutter); }
+    .cta--bar { padding: 0.6rem 0.85rem; }
+    .hero__kicker { margin-bottom: var(--sc-2); }
+    .hero__triad { --gap: 0.6rem; }
+    .hero__line > * { padding: 0.3rem 0; }
+    .hero__line b { font-size: 1.45rem; min-width: 5.4ch; }
+    .hero__line span { font-size: 0.82rem; }
+    .hero__triad + .cta { margin-top: var(--sc-4); }
+    .hero__copy .sc-body { max-width: none; margin-top: var(--sc-3); font-size: 0.86rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+    .hero__copy { bottom: clamp(2rem, 8vh, 4rem); max-width: none; right: var(--sc-gutter); }
+    .hero__copy::before { content: ""; position: absolute; inset: -3rem calc(-1 * var(--sc-gutter)) -3rem; z-index: -1; background: linear-gradient(to top, color-mix(in oklab, var(--sc-canvas) 92%, transparent) 0%, color-mix(in oklab, var(--sc-canvas) 82%, transparent) 70%, transparent 100%); }
+    .hero__copy--b .sc-display--lg { max-width: none; font-size: 2.1rem; }
+    .hero__sub { font-size: 0.9rem; margin-top: var(--sc-3); }
+    .hero__fore { width: 36vmin; height: 36vmin; right: -20vmin; bottom: 50vh; }
+    .hero__fore--b { display: none; }
+    .no-webgl .hero__scene { left: 0; }
+    .no-webgl .hero__poster { object-fit: contain; object-position: 50% 0; }
+    .hero__note { display: none; }
+    .missing__grid, .agents__copy, .forwhom__grid, .invariant, .close__inner { grid-template-columns: minmax(0, 1fr); }
+    .missing__list li { column-gap: var(--sc-4); } .ans__v { font-size: 1.6rem; }
+    .rail__lead { width: min(78vw, 22rem); }
+    .station { width: min(74vw, 19rem); min-height: 22rem; }
+    .rail__tail { width: min(58vw, 15rem); padding-left: 0.75rem; }
+    .demo__inner { grid-template-columns: minmax(0, 1fr); gap: var(--sc-4); padding: 4.6rem var(--sc-gutter) 1.25rem; align-content: start; }
+    .demo__inner { grid-template-rows: auto 1fr auto; grid-template-areas: 'head' 'body' 'close'; }
+    .proposal, .tests { grid-area: body; }
+    .tests { position: relative; }
+    .verdict { position: absolute; inset: 0 0 auto 0; }
+    .test__state { justify-self: start; }
+    .demo__head h2 { font-size: var(--sc-t-xl); }
+    .proposal { padding: var(--sc-4); font-size: 0.72rem; }
+    .proposal dl { grid-template-columns: 5.5rem minmax(0, 1fr); gap: 0.3rem 0.75rem; }
+    .proposal__title { font-size: var(--sc-t-base); }
+    .tests { gap: 0; }
+    .test { grid-template-columns: minmax(0, 1fr) auto; padding: 0.6rem 0; }
+    .test__body { grid-column: 1 / -1; font-size: 0.78rem; }
+    .verdict { padding: var(--sc-4); }
+    .verdict h3 { font-size: var(--sc-t-lg); }
+    .verdict ul { font-size: 0.78rem; }
+    .verdict__reason { font-size: 0.78rem; }
+    .demo__close .sc-lede { font-size: var(--sc-t-lg); }
+    .agents__scrim { background: linear-gradient(to top, color-mix(in oklab, var(--sc-canvas) 96%, transparent) 0%, color-mix(in oklab, var(--sc-canvas) 86%, transparent) 55%, color-mix(in oklab, var(--sc-canvas) 30%, transparent) 80%, transparent 100%); }
+    /* phones: sections sit close together; the page reads as one column, not a stack of empty screens */
+    .missing { padding-block: 3.25rem 2.5rem; }
+    .silence { min-height: 0; padding-block: 2.5rem 3rem; }
+    .forwhom { padding-block: 3.25rem; }
+    .agents { min-height: 0; padding-block: 14vh 3rem; }
+    .snap { min-height: 150vh; --k: clamp(0, calc((var(--sc-p, 0) - 0.14) / 0.32), 1); --k2: clamp(0, calc((var(--sc-p, 0) - 0.44) / 0.1), 1); }
+    .snap__stage { align-items: start; }
+    .fw__inner { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: 'head' 'fig' 'card'; gap: var(--sc-3); padding: 4.2rem var(--sc-gutter) 3rem; align-items: start; }
+    .fw__head .sc-display--md { font-size: var(--sc-t-lg); }
+    .fw__head .sc-label { display: none; }
+    .fw__fig { width: 100%; }
+    .fw__scene { aspect-ratio: 1 / 0.7; }
+    .fw__lab { font-size: 0.72rem; }
+    .fw__lab--hub { display: none; }
+    .fw__lab--gate { transform: translate(-50%, 40%); font-size: 0.52rem; }
+    .fw__legend { display: none; }
+    .fw__handoff { font-size: 0.62rem; padding: 0.3rem 0.55rem; }
+    .fw__card { min-height: 0; align-self: stretch; }
+    .fw__dock { min-height: 17rem; }
+    .pb.is-docked { bottom: auto; left: auto; right: auto; padding: 0.7rem 0.8rem; border-radius: 14px; }
+    .pb.is-docked .pb__dots, .pb.is-docked .pb__feed { display: grid; }
+    .pb.is-docked .pb__head { display: flex; }
+    .pb.is-docked .pb__dots { margin-top: 0; }
+    .pbl { gap: 0.4rem; }
+    .pbl h3 { font-size: var(--sc-t-lg); }
+    .pbl__generic { display: none; }
+    .pbl__ex { padding: 0.6rem; }
+    .pbl__ex p { font-size: 0.78rem; }
+    .pbl__ex .pbv--snap, .pbl__ex .pbv--who { display: none; }
+    .pbl__hand { font-size: 0.6rem; }
+    .fw__byline { font-size: 0.62rem; }
+    .bd__inner { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: 'head' 'fig' 'card'; gap: var(--sc-3); padding: 4.2rem var(--sc-gutter) 3rem; align-items: start; }
+    .bd__head { grid-template-columns: minmax(0, 1fr); gap: 0.3rem; }
+    .bd__head .sc-display--md { font-size: var(--sc-t-lg); max-width: none; }
+    .bd__head .sc-body { display: none; }
+    .bd__scene { aspect-ratio: 1 / 0.8; }
+    .bd__lab { font-size: 0.62rem; padding: 0.14rem 0.36rem; }
+    .bd__lab small { display: none; }
+    .bd__lab--wall small { display: none; }
+    .bd__lab--bin { transform: translate(-50%, -50%); justify-items: center; text-align: center; }
+    .bd__lab--op { transform: translate(-50%, -100%); justify-items: center; text-align: center; }
+    .bd__meter { padding: 0.5rem 0.7rem 0.6rem; gap: 0.3rem; }
+    .bd__meter-head { font-size: 0.6rem; gap: 0.5rem; }
+    .bd__meter-limit small { display: none; }
+    .bd__meter-legend { display: none; }
+    .bd__card { align-self: stretch; }
+    .bd__panel { padding: var(--sc-4); gap: 0.45rem; }
+    .bd__ctx { display: none; }
+    .bd__req b { font-size: var(--sc-t-base); }
+    .bd__j > div { grid-template-columns: 5.6rem minmax(0, 1fr); padding: 0.3rem 0; }
+    .bd__res { font-size: 0.76rem; }
+    .bd__byline { font-size: 0.6rem; }
+    .snap { min-height: 150vh; }
+    .snap__grid { grid-template-columns: minmax(0, 1fr); gap: var(--sc-4); align-content: start; padding-top: 4.5rem; }
+    .snap__copy .sc-display--lg { font-size: var(--sc-t-xl); max-width: none; }
+    .snap__copy .sc-body { margin-top: var(--sc-3); font-size: var(--sc-t-sm); }
+    .snap__legend { display: none; }
+    .snap__fig { --r: 5.1rem; max-height: 52vh; max-width: none; aspect-ratio: 1 / 0.95; }
+    .snap__ring { width: calc(var(--r) * 3.4); height: calc(var(--r) * 3.5); border-radius: 12%; }
+    .snap__core { width: 7.8rem; padding: 0.6rem; }
+    .snap__core b { font-size: 0.85rem; }
+    .ct { width: auto; min-height: 0; padding: 0.3rem; grid-template-columns: auto; border-radius: 9px; }
+    .ct__i { grid-row: auto; width: 1.6rem; height: 1.6rem; }
+    .ct__t, .ct__bar, .ct__spark, .ct__dot { display: none; }
+    .snap__fig { --r: 5.6rem; }
+    .ladder li { grid-template-columns: minmax(0, 1fr); gap: var(--sc-2); }
+    .block { display: block; }
+    .block > div { border-top: 0; padding-top: var(--sc-3); }
+    .proof div { grid-template-columns: minmax(0, 1fr); gap: 0.25rem; }
+    .close__inner { padding-top: 44vh; padding-bottom: var(--sc-8); align-content: start; gap: var(--sc-5); }
+    .close__copy { width: auto; max-width: none; }
+    .close__copy .sc-display--lg { font-size: 1.55rem; max-width: none; }
+    .close__copy .sc-body { margin-top: var(--sc-3); }
+    .close__copy .cta { margin-top: var(--sc-4); }
+    .foot { position: static; margin-top: var(--sc-5); }
+    .pb__head, .pb__dots, .pb__feed, .pb__aura { display: none; }
+  }
+  /* ------------------------------------------ mobile: second pass -- */
+  @media (max-width: 860px) {
+    /* hero copy sits at the bottom again on phones; the beads take the top half */
+    .hero__copy { top: auto; translate: none; }
+    /* the transition beat: a shorter line that still draws with the scroll */
+    .silence__rule { height: clamp(3.5rem, 12vh, 6rem); }
+    /* the decision loop has to fit one phone viewport while pinned */
+    .fw__inner { padding: 3.9rem var(--sc-gutter) 1.2rem; gap: 0.5rem; }
+    .fw__head .sc-display--md { font-size: 1.05rem; }
+    .fw__fig { gap: 0.4rem; }
+    .fw__scene { aspect-ratio: 1 / 0.6; }
+    .fw__lab { font-size: 0.66rem; padding: 0.14rem 0.4rem; gap: 0.25rem; }
+    .fw__lab small { font-size: 0.5rem; }
+    .fw__lab--gate { font-size: 0.48rem; transform: translate(-8%, 95%); }
+    .fw__cap { gap: 0.45rem; padding-top: 0.2rem; }
+    .fw__phases { gap: 0.35rem; flex-wrap: nowrap; }
+    .fw__phase-sep { display: none; }
+    .fw__lab--grp { padding: 0.22rem 0.55rem; gap: 0.25rem; }
+    .fw__lab--grp em { display: none; }
+    .fw__lab--grp small { font-size: 0.7rem; }
+    .fw__handoff { max-width: 100%; white-space: normal; text-align: center; line-height: 1.35; font-size: 0.58rem; }
+    .fw__handoff-k { display: none; }
+    .fw__dock { min-height: 14rem; }
+    .pb.is-docked { padding: 0.55rem 0.7rem 0.6rem; }
+    .pb__head { padding-bottom: 0.5rem; }
+    .pb__orb { width: 1.7rem; height: 1.7rem; }
+    .pb__title b { font-size: 0.8rem; }
+    .pbl { gap: 0.3rem; }
+    .pbl h3 { font-size: 1rem; }
+    .pbl__ex { padding: 0.5rem; gap: 0.35rem; }
+    .pbl__ex p { font-size: 0.74rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+    .pbl__ex .pbv { display: none; }
+    .pbl__hand { display: none; }
+    .fw__byline { display: none; }
+    /* the boundary scene: same constraint, one viewport */
+    .bd__inner { padding: 3.9rem var(--sc-gutter) 1rem; gap: 0.4rem; }
+    .bd__head .sc-display--md { font-size: 1.05rem; }
+    .bd__scene { aspect-ratio: 1 / 0.66; }
+    .bd__fig { gap: 0.4rem; }
+    .bd__meter { padding: 0.5rem 0.7rem; gap: 0.35rem; }
+    .bd__meter-head { font-size: 0.58rem; }
+    .bd__card { align-self: start; }
+    .bd__panel { align-self: start; padding: 0.7rem 0.8rem; gap: 0.4rem; border-radius: 12px; }
+    .bd__req { row-gap: 0.25rem; }
+    .bd__req b { font-size: 0.95rem; }
+    .bd__j > div { padding: 0.28rem 0; gap: 0.5rem; }
+    .bd__j dt { font-size: 0.72rem; }
+    .bd__pill { font-size: 0.56rem; padding: 0.2rem 0.45rem; }
+    .bd__res { font-size: 0.72rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .bd__flip { font-size: 0.6rem; padding: 0.35rem 0.5rem; }
+    .bd__byline { display: none; }
+  }
+  /* tablets: the snapshot has room for the full tiles again */
+  @media (min-width: 561px) and (max-width: 860px) {
+    .snap__fig { --tw: 8.4rem; --r: calc(var(--tw) * 1.06); max-width: 40rem; margin-inline: auto; aspect-ratio: 1 / 0.92; }
+    .snap__ring { width: calc(var(--r) * 4.25); height: calc(var(--r) * 3.7); border-radius: 7%; }
+    .ct { width: var(--tw); min-height: 3.45rem; padding: 0.48rem 0.55rem; grid-template-columns: auto minmax(0, 1fr); border-radius: 11px; }
+    .ct__i { grid-row: 1 / span 2; width: 1.5rem; height: 1.5rem; }
+    .ct__t, .ct__bar, .ct__spark, .ct__dot { display: revert; }
+    .ct__t { display: grid; }
+    .snap__core { width: clamp(11.5rem, 30vw, 14.5rem); padding: 1rem 1rem 0.9rem; }
+    .snap__core b { font-size: 1.05rem; }
+  }
+  @media (max-width: 400px) {
+    .hero__line b { font-size: 1.3rem; }
+    .demo__inner { padding-top: 4.2rem; }
+  }
+  @media (max-width: 400px) { .verdict__rules { display: none; } .verdict__reason { font-size: 0.72rem; } .verdict ul { font-size: 0.72rem; } }
+  @media (prefers-reduced-motion: reduce) {
+    .pb { transition: none; animation: none; }
+    .pb::before { animation: none; }
+    .pb__listen .pb__dots i { animation: none; opacity: 0.7; }
+    .snap { --k: 1; --k2: 1; }
+    .ct { animation: none; }
+    .snap__ring { transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sc-grain" aria-hidden="true"></div>
+
+<header class="bar" id="bar">
+  <a class="mark" href="#top" aria-label="MemoLogs, home">
+    <img class="mark__img" src="assets/logo-mark.webp" width="400" height="396" alt="" aria-hidden="true" decoding="async">
+    <span>MemoLogs</span>
+  </a>
+  <a class="cta cta--bar" href="#book">Book a walkthrough</a>
+</header>
+
+<aside class="pb" id="record" aria-label="The decision loop, stage by stage" aria-live="polite">
+  <div class="pb__aura" aria-hidden="true"></div>
+  <header class="pb__head">
+    <span class="pb__orb" aria-hidden="true"><img src="assets/logo-mark.webp" width="400" height="396" alt="" decoding="async"></span>
+    <div class="pb__title"><b>The decision loop</b><small>Prove · Act · Remember</small></div>
+  </header>
+  <ol class="pb__dots" data-pb-dots aria-hidden="true"></ol>
+  <div class="pb__feed" data-pb-feed></div>
+</aside>
+
+<main id="top">
+
+  <!-- 1 · UNEASE → ORDER -->
+  <section class="hero" data-sc-act="pin" data-sc-span="2.3" data-sc-drift="#070D17" data-ml-hero>
+    <div data-sc-stage data-sc-verify-state="s=0.00">
+      <div class="hero__far" data-sc-parallax="-0.9">
+        <picture>
+          <source media="(max-width: 860px)" srcset="assets/hero-plate-p.webp">
+          <img src="assets/hero-plate.webp" width="2736" height="1520" alt="" decoding="async" fetchpriority="high">
+        </picture>
+      </div>
+      <div class="hero__haze" data-sc-parallax="-0.4" aria-hidden="true"></div>
+      <div class="hero__floor" aria-hidden="true"></div>
+      <div class="sc-scrim sc-scrim--lead hero__scrim" aria-hidden="true"></div>
+
+      <div class="sc-copy sc-copy--lead hero__copy" data-sc-cue="0 0.62 0 0.08">
+        <span class="sc-label hero__kicker">Vertical AI for marketing</span>
+        <h1 class="hero__triad" data-ml-triad>
+          <span class="hero__line" data-ml-line="0"><b>Prove</b><span>What your advertising actually caused.</span></span>
+          <span class="hero__line" data-ml-line="1"><b>Act</b><span>AI moves the money, inside your guardrails and policies.</span></span>
+          <span class="hero__line" data-ml-line="2"><b>Remember</b><span>Everything, with the context it happened in.</span></span>
+        </h1>
+        <a class="cta cta--lg" href="#book">Book a walkthrough</a>
+      </div>
+
+      <div class="hero__scene" aria-hidden="true">
+        <picture><source media="(max-width: 860px)" srcset="assets/hero-poster-m.webp"><img class="hero__poster" src="assets/hero-poster.webp" alt=""></picture>
+        <canvas data-ml-view="hero"></canvas>
+      </div>
+
+      <div class="hero__fore" data-sc-parallax="1.1" aria-hidden="true"></div>
+      <div class="hero__fore hero__fore--b" data-sc-parallax="0.6" aria-hidden="true"></div>
+
+      <div class="sc-scrim sc-scrim--lead hero__scrim hero__scrim--b" aria-hidden="true"></div>
+      <div class="sc-copy sc-copy--lead hero__copy hero__copy--b" data-sc-cue="0.68 1 0.12 0.12">
+        <h2 class="sc-display sc-display--lg">Finally, a marketing AI with institutional memory.</h2>
+        <p class="hero__sub">A ledger of every advertising decision. Guardrails your finance team set. Playbooks that sharpen with each result.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · RECOGNITION -->
+  <section class="sc-section missing" data-sc-act="flow" data-sc-drift="#0A1220" data-ml-act="missing">
+    <div class="sc-wrap missing__grid">
+      <div class="sc-stack" data-sc-in data-sc-stagger="70">
+        <span class="sc-label">The problem</span>
+        <h2 class="sc-display sc-display--md">One campaign. Five answers. Which one would you take to the board?</h2>
+        <p class="sc-body">A $40M direct-to-consumer brand spends $3.5M a month across six channels. The board asks whether one $412K Facebook campaign worked. This is what comes back.</p>
+        <p class="missing__note">Composite of MemoLogs accounts · anonymised</p>
+      </div>
+      <div>
+        <ul class="missing__list">
+          <li data-sc-reveal="left" data-sc-reveal-at="0.06 0.15"><span class="ans__v" data-count-to="5.71" data-count-pre="$" data-count-suf="M" data-count-dec="2">$5.71M</span><span class="ans__s">Facebook’s own report</span><span class="ans__n">the platform grading itself</span></li>
+          <li data-sc-reveal="left" data-sc-reveal-at="0.10 0.19"><span class="ans__v" data-count-to="3.10" data-count-pre="$" data-count-suf="M" data-count-dec="2">$3.10M</span><span class="ans__s">Their analytics tool</span><span class="ans__n">credit split across clicks</span></li>
+          <li data-sc-reveal="left" data-sc-reveal-at="0.14 0.23"><span class="ans__v" data-count-to="1.90" data-count-pre="$" data-count-suf="M" data-count-dec="2">$1.90M</span><span class="ans__s">Their statistical model</span><span class="ans__n">a model of last quarter</span></li>
+          <li data-sc-reveal="left" data-sc-reveal-at="0.18 0.27"><span class="ans__v" data-count-to="12" data-count-pre="+" data-count-suf="%" data-count-dec="0">+12%</span><span class="ans__s">The last real test</span><span class="ans__n">true—five months ago</span></li>
+          <li data-sc-reveal="left" data-sc-reveal-at="0.22 0.31"><span class="ans__v" data-count-to="4" data-count-pre="+" data-count-suf="%" data-count-dec="0">+4%</span><span class="ans__s">What finance sees</span><span class="ans__n">revenue, all causes</span></li>
+        </ul>
+        <div class="missing__after sc-stack" data-sc-in data-sc-stagger="80">
+          <p class="sc-lede">Every figure is correctly calculated. None of them tells you what the next $412,000 will do.</p>
+          <p class="sc-body">So the number that gets presented is the one that can be defended, and the budget moves on instinct. The reasoning, the conditions and the approver are never written down. When the person who made the call leaves, the company forgets the call was ever made.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · CLARITY -->
+  <section class="path" data-sc-act="pan" data-sc-span="2.6" data-sc-drift="#0A1220" data-ml-act="path">
+    <div data-sc-stage>
+      <div class="rail" data-sc-pan="0.05">
+        <div class="rail__lead">
+          <span class="sc-label">What we do</span>
+          <h2 class="sc-display sc-display--md">Prove it. Act on it. Remember it.</h2>
+          <p class="sc-body">A clinical trial for your advertising: some of your markets see the campaign, some are held back, all the time. The AI acts on the result inside your rules—and never forgets it.</p>
+        </div>
+        <article class="station">
+          <div class="station__art" aria-hidden="true"><svg viewBox="0 0 120 72"><path class="b" d="M8 48a18 18 0 0 1 36 0"/><path class="a" d="M8 48a18 18 0 0 1 30-13"/><path class="b" d="M42 48a18 18 0 0 1 36 0"/><path class="a" d="M42 48a18 18 0 0 1 32-10"/><path class="b" d="M76 48a18 18 0 0 1 36 0"/><path class="a" d="M76 48a18 18 0 0 1 31-12"/><circle class="a2" cx="26" cy="48" r="2.5"/><circle class="a2" cx="60" cy="48" r="2.5"/><circle class="a2" cx="94" cy="48" r="2.5"/></svg></div>
+          <div><span class="sc-label">01 · Prove</span><h3>A causal answer from a live experiment in your own markets</h3><p>Three published methods are run separately on the same question. You get a verdict only when all three agree, with a grade for how far to trust it.</p></div>
+          <div class="station__out"><b>When the data can’t answer, it says so</b>Roughly one question in eight. You never get a confident number that isn’t.</div>
+        </article>
+        <article class="station">
+          <div class="station__art" aria-hidden="true"><svg viewBox="0 0 120 72"><circle class="b" cx="76" cy="26" r="16"/><circle class="b" cx="94" cy="38" r="16"/><circle class="b" cx="80" cy="50" r="14"/><path class="a" d="M36 8 16 15v18c0 12 8 20 20 24 12-4 20-12 20-24V15z"/><path class="a" d="m28 34 6 6 10-12"/></svg></div>
+          <div><span class="sc-label">02 · Act</span><h3>Budget moved on the ad platforms, inside limits you approved</h3><p>Then the platform is checked to confirm the change actually happened. Executed and verified are two different claims, and you see both.</p></div>
+          <div class="station__out"><b>Your rules decide permission</b>A persuasive number is never a reason to spend.</div>
+        </article>
+        <article class="station">
+          <div class="station__art" aria-hidden="true"><svg viewBox="0 0 120 72"><rect class="b" x="30" y="10" width="56" height="34" rx="5"/><rect class="b" x="24" y="18" width="56" height="34" rx="5"/><rect class="a" x="18" y="26" width="56" height="34" rx="5"/><path class="b" d="M26 36h30M26 44h22M26 52h14"/><circle class="a" cx="90" cy="46" r="11"/><path class="a" d="M98 54l10 10"/><path class="a2" d="M85 46h10"/></svg></div>
+          <div><span class="sc-label">03 · Remember</span><h3>Every decision kept, with its evidence, its approver and its result</h3><p>Plus the conditions at the time—price, promotions, competitor activity, seasonality—captured automatically, so the next team can see what was actually different.</p></div>
+          <div class="station__out"><b>Memory that outlasts the team</b>People leave. The reasoning stays.</div>
+        </article>
+        <div class="rail__tail">
+          <p class="sc-lede">Everything MemoLogs does is one of those three things.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · ANTICIPATION (authored silence) -->
+  <section class="silence" data-sc-act="flow" data-sc-drift="#070D17" data-ml-act="silence">
+    <div class="silence__in sc-stack" data-sc-in data-sc-stagger="90">
+      <span class="sc-label silence__kicker">The walkthrough</span>
+      <p>Here is what that looks like, running for one brand.</p>
+      <span class="silence__rule" aria-hidden="true"></span>
+    </div>
+  </section>
+
+  <!-- THE FLYWHEEL (peak): Frame → Evaluate → Decide → Act → Observe → Learn ↺ -->
+  <section class="fw" data-sc-act="pin" data-sc-span="4.2" data-sc-drift="#070D17" data-ml-act="demo" data-ml-demo data-ml-fw>
+    <div data-sc-stage data-sc-verify-state="t=0.00">
+      <div class="fw__inner">
+        <div class="fw__head" data-sc-cue="0 1 0 0">
+          <span class="sc-label">The MemoLogs decision loop</span>
+          <h2 class="sc-display sc-display--md">Every decision feeds the next.</h2>
+        </div>
+        <figure class="fw__fig" data-sc-cue="0 1 0 0">
+          <div class="fw__scene" aria-hidden="true">
+            <canvas data-ml-view="fw"></canvas>
+            <div class="fw__labels" data-fw-labels><span class="fw__lab" data-fw-lab="0"><small>01</small><b>Frame</b></span><span class="fw__lab" data-fw-lab="1"><small>02</small><b>Evaluate</b></span><span class="fw__lab" data-fw-lab="2"><small>03</small><b>Decide</b></span><span class="fw__lab" data-fw-lab="3"><small>04</small><b>Act</b></span><span class="fw__lab" data-fw-lab="4"><small>05</small><b>Observe</b></span><span class="fw__lab" data-fw-lab="5"><small>06</small><b>Learn</b></span><span class="fw__lab fw__lab--hub" data-fw-lab="hub"><b>Company memory</b></span><span class="fw__lab fw__lab--gate" data-fw-lab="gate"><b>Approved rules</b></span></div>
+          </div>
+          <figcaption class="fw__cap"><div class="fw__phases" aria-hidden="true"><span class="fw__lab fw__lab--grp" data-fw-lab="g0" data-fw-static><small>Prove</small><em>01 · 02</em></span><span class="fw__phase-sep"></span><span class="fw__lab fw__lab--grp" data-fw-lab="g1" data-fw-static><small>Act</small><em>03 · 04</em></span><span class="fw__phase-sep"></span><span class="fw__lab fw__lab--grp" data-fw-lab="g2" data-fw-static><small>Remember</small><em>05 · 06</em></span></div><div class="fw__handoff" data-fw-handoff aria-live="polite"><span class="fw__handoff-k">Carries forward</span><span data-fw-handoff-text>goal · proposal · rules</span></div><div class="fw__legend"><span><i class="l-info"></i>Learning informs recommendations</span><span><i class="l-gate"></i>Approved rules control action</span></div></figcaption>
+        </figure>
+        <div class="fw__card" data-sc-cue="0 1 0 0"><div class="fw__dock" data-fw-dock aria-hidden="true"></div><p class="fw__byline">Illustrative walkthrough: a composite of MemoLogs accounts, anonymised. No live account activity.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONDITIONS SNAPSHOT: what the decision is stored with -->
+  <section class="snap" data-sc-act="flow" data-sc-drift="#0A1220" data-ml-act="snap">
+    <div class="snap__stage" data-sc-verify-state="k=0.00">
+      <div class="sc-wrap snap__grid">
+        <div class="snap__copy sc-stack" data-sc-in data-sc-stagger="70">
+          <h2 class="sc-display sc-display--lg">Every decision is stored with the world around it.</h2>
+          <p class="sc-body">A decision on its own is a guess later. MemoLogs attaches a snapshot of the conditions at the moment of the choice, so the next team can tell what was actually different.</p>
+          <ul class="snap__legend" aria-hidden="true"><li>Product</li><li>Pricing</li><li>Promos</li><li>Seasonality</li><li>Competition</li><li>Search</li><li>News</li><li>Reviews</li><li>Sentiment</li><li>Economy</li></ul>
+        </div>
+        <figure class="snap__fig" aria-label="Ten condition tiles converge onto the decision card and are embedded with it">
+          <div class="snap__ring" aria-hidden="true"></div>
+          <div class="snap__core">
+            <span class="sc-label">Decision</span>
+            <b>Scale radio by $460K across eight markets.</b>
+            <small>Approved · the conditions travel with it</small>
+            <span class="snap__stamp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3.5"/></svg>Snapshot embedded</span>
+          </div>
+          <ul class="snap__tiles"><li class="ct" style="--i:0;--px:-0.54;--py:-1.48"><span class="ct__i" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 4 7v10l8 4 8-4V7z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg></span><span class="ct__t"><b>Product</b><small>2 SKUs low on stock</small></span><span class="ct__bar"><i style="width:94%"></i></span></li><li class="ct" style="--i:1;--px:0.54;--py:-1.48"><span class="ct__i" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg></span><span class="ct__t"><b>Pricing</b><small>ASP +3% vs 90d</small></span><svg class="ct__spark" viewBox="0 0 56 16" preserveAspectRatio="none" aria-hidden="true"><path d="M1.0 14.0 L10.0 14.0 L19.0 10.0 L28.0 10.0 L37.0 6.0 L46.0 6.0 L55.0 2.0"/></svg></li><li class="ct" style="--i:2;--px:1.46;--py:-0.745"><span class="ct__i" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 19 19 5"/><circle cx="7.5" cy="7.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg></span><span class="ct__t"><b>Promos</b><small>None active · ours</small></span><span class="ct__dot is-off"></span></li><li class="ct" style="--i:3;--px:1.46;--py:0"><span class="ct__i" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></span><span class="ct__t"><b>Seasonality</b><small>41 days to peak</small></span><span class="ct__bar"><i style="width:62%"></i></span></li><li class="ct" style="--i:4;--px:1.46;--py:0.745"><span class="ct__i" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20 20 4M14 4h6v6M4 14v6h6"/></svg></span><span class="ct__t"><b>Competition</b><small>Rival discounting</small></span><span class="ct__dot is-warn"></span></li><li class="ct" style="--i:5;--px:0.54;--py:1.48"><span class="ct__i" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 5 5"/></svg></span><span class="ct__t"><b>Search index</b><small>Interest +18%</small></span><svg class="ct__spark" viewBox="0 0 56 16" preserveAspectRatio="none" aria-hidden="true"><path d="M1.0 14.0 L10.0 14.0 L19.0 11.6 L28.0 9.2 L37.0 9.2 L46.0 4.4 L55.0 2.0"/></svg></li><li class="ct" style="--i:6;--px:-0.54;--py:1.48"><span class="ct__i" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 9h5M7 12h10M7 15h10"/></svg></span><span class="ct__t"><b>News</b><small>1 flag · retail</small></span><span class="ct__dot is-warn"></span></li><li class="ct" style="--i:7;--px:-1.46;--py:0.745"><span class="ct__i" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/></svg></span><span class="ct__t"><b>Reviews</b><small>4.4 ★ · 2.1k</small></span><span class="ct__bar"><i style="width:88%"></i></span></li><li class="ct" style="--i:8;--px:-1.46;--py:0"><span class="ct__i" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1 1.3 2.2 2 3.5 2s2.5-.7 3.5-2"/><path d="M9 10h.01M15 10h.01"/></svg></span><span class="ct__t"><b>Sentiment</b><small>+0.31 · improving</small></span><svg class="ct__spark" viewBox="0 0 56 16" preserveAspectRatio="none" aria-hidden="true"><path d="M1.0 14.0 L10.0 11.0 L19.0 11.0 L28.0 8.0 L37.0 5.0 L46.0 5.0 L55.0 2.0"/></svg></li><li class="ct" style="--i:9;--px:-1.46;--py:-0.745"><span class="ct__i" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 21h18M4 10h16M6 10v8M10 10v8M14 10v8M18 10v8M12 3 3 8h18z"/></svg></span><span class="ct__t"><b>Economy</b><small>Steady</small></span><span class="ct__dot is-ok"></span></li></ul>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="sc-section forwhom" data-sc-act="flow" data-sc-drift="#0A1220" data-ml-act="result">
+    <div class="sc-wrap">
+      <p class="sc-label" data-sc-in>The feedback loop · the same brand, continued</p>
+      <h2 class="sc-display sc-display--lg forwhom__head" data-sc-in>Every result becomes evidence for the next decision.</h2>
+      <div class="forwhom__grid">
+        <div class="block" data-sc-in>
+          <h3>Grade what was decided, delivered and earned</h3>
+          <div><dl class="proof">
+            <div><dt>Decision</dt><dd>How strong was the case, given what was known? For this brand: well-supported—three methods agreed on radio, and Facebook was refused rather than guessed.</dd></div>
+            <div><dt>Execution</dt><dd>Did the action follow the approved plan and limits? For this brand: $460K written inside the cap and verified on the platforms.</dd></div>
+            <div><dt>Outcome</dt><dd>Did the result meet the objective, and what can the evidence attribute to it? For this brand: radio held at +19% in the new markets; the July Meta scale-up lost 8%.</dd></div>
+          </dl></div>
+        </div>
+        <div class="block" data-sc-in>
+          <h3>Explore what could have happened instead</h3>
+          <div><dl class="proof">
+            <div><dt>Alternatives</dt><dd>What a different scale, timing or channel would likely have done, set against the path taken.</dd></div>
+            <div><dt>Evidence</dt><dd>Built only from your past decisions, measured effects and the conditions at the time—never from a platform’s own claim.</dd></div>
+            <div><dt>Uncertainty</dt><dd>Show the assumptions and the ranges. Estimates stay labelled as estimates; measured effects stay measured.</dd></div>
+            <div><dt>Next step</dt><dd>A recommended action or a test to run. When the evidence can’t separate two options, it says so.</dd></div>
+          </dl></div>
+        </div>
+        <div class="block" data-sc-in>
+          <h3>Recommend the next move—with the reasons attached</h3>
+          <div><p class="sc-body">Recommend what to continue, change, pause or test. Each recommendation links back to relevant decisions, delivery evidence and business results—and returns to evaluation before a new commitment.</p><p class="sc-body">Your next team or agent starts with the lesson and the context that makes it useful.</p></div>
+        </div>
+        <div class="block" data-sc-in>
+          <h3>Improve the rules, too</h3>
+          <div><p class="sc-body">AI identifies recurring exceptions and proposes rule refinements. Review how a proposed rule would have treated past decisions and where it might introduce unnecessary delays.</p><p class="sc-body">Your team decides whether to adopt, adjust or reject it. Approved changes feed the next cycle; learning never silently changes permission.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · INEVITABILITY -->
+  <section class="agents" data-sc-act="flow" data-sc-drift="#0A1220" data-ml-act="agents">
+    <figure class="agents__plate" data-sc-reveal="up" data-sc-reveal-at="0.04 0.4">
+      <img src="assets/agents-plate.webp" width="2736" height="1520" alt="" loading="lazy" decoding="async">
+    </figure>
+    <div class="agents__scrim" aria-hidden="true"></div>
+    <div class="sc-wrap agents__copy">
+      <div class="sc-stack" data-sc-in data-sc-stagger="70">
+        <h2 class="sc-display sc-display--lg">More hands on the budget. One limit they all share.</h2>
+        <p class="sc-body">Your teams, agencies and AI agents each see part of the picture. Your company carries the whole investment. A retail plan, a sponsorship deal and an agent's campaign change can each make sense on their own—and still compete for the same budget or audience.</p>
+        <p class="sc-body">MemoLogs brings every proposed media commitment back to your goals, agreed spending rules and relevant past decisions. It surfaces competing commitments, tests the supporting evidence and identifies when a person needs to decide.</p>
+        <p class="sc-body">Give people and agents room to act—with your company's experience behind them and clear boundaries around the money.</p>
+      </div>
+      <ol class="ladder" data-sc-in data-sc-stagger="90">
+        <li><h3>See the whole commitment</h3><p>Bring campaign changes, contracts, media bookings and purchase requests into one investment picture—through connected systems, uploaded plans and team submissions.</p></li>
+        <li><h3>Bring experience to the decision</h3><p>Retrieve comparable decisions and examine how closely their context and evidence fit. Past results inform the case; similarity alone is never permission to spend.</p></li>
+        <li class="is-entry"><h3>Make permission clear</h3><p>Your approved rules determine what can proceed, what needs limits and what requires review. Where execution runs through MemoLogs, those boundaries govern the action itself.</p></li>
+        <li><h3>Carry the learning forward</h3><p>Every decision adds context for the next: what was expected, what happened and what the organization should reconsider. AI recommends refinements; your team approves rule changes.</p></li>
+      </ol>
+    </div>
+  </section>
+
+
+  <!-- MANY OPERATORS. ONE INVESTMENT BOUNDARY. -->
+  <section class="bd" data-sc-act="pin" data-sc-span="5.2" data-sc-drift="#070D17" data-ml-act="boundary" data-ml-bd>
+    <div data-sc-stage data-sc-verify-state="b=0.00">
+      <div class="bd__inner">
+        <div class="bd__head" data-sc-cue="0 1 0 0">
+          <h2 class="sc-display sc-display--md">Every operator sees an opportunity. MemoLogs sees the commitments.</h2>
+          <p class="sc-body">Every incoming change is checked against your shared spending rules, the evidence behind it and the decisions already in motion—before more money is committed.</p>
+        </div>
+        <figure class="bd__fig" data-sc-cue="0 1 0 0">
+          <div class="bd__scene" aria-hidden="true">
+            <canvas data-ml-view="bd"></canvas>
+            <div class="bd__labels" data-bd-labels>
+              <span class="bd__lab bd__lab--op" data-bd-lab="op0"><b>Marketing team</b><small>local goal: new buyers</small></span>
+              <span class="bd__lab bd__lab--op" data-bd-lab="op1"><b>Agency</b><small>local goal: reach</small></span>
+              <span class="bd__lab bd__lab--op" data-bd-lab="op2"><b>AI agents</b><small>local goal: efficiency</small></span>
+              <span class="bd__lab bd__lab--wall" data-bd-lab="wall"><b>MemoLogs</b><small><i class="l-ai"></i>AI brings context</small><small><i class="l-rule"></i>Rules govern permission</small></span>
+              <span class="bd__lab bd__lab--bin" data-bd-lab="bin0"><b>Proceeds</b></span>
+              <span class="bd__lab bd__lab--bin" data-bd-lab="bin1"><b>Held for review</b></span>
+              <span class="bd__lab bd__lab--bin" data-bd-lab="bin2"><b>More evidence</b></span>
+              <span class="bd__lab bd__lab--bin" data-bd-lab="bin3"><b>Revised option</b></span>
+              <span class="bd__lab bd__lab--ext" data-bd-lab="ext"><b>Direct platform change</b><small>detected after · reconciled · owner alerted</small></span>
+            </div>
+          </div>
+          <figcaption class="bd__meter" data-bd-meter>
+            <div class="bd__meter-head"><span class="sc-label">Shared commitment · Audience A</span><span data-bd-meter-text>$0 of $120k</span></div>
+            <div class="bd__meter-bar"><span class="bd__seg"><i class="s-c" data-bd-seg="c" style="width:0%"></i><i class="s-h" data-bd-seg="h" style="width:0%"></i><i class="s-e" data-bd-seg="e" style="width:0%"></i></span><b class="bd__meter-limit" style="left:80%"><small>limit $120k</small></b></div>
+            <div class="bd__meter-legend"><span><i class="l-ai"></i>Committed</span><span><i class="l-hold"></i>Held</span><span><i class="l-ext"></i>Detected after</span></div>
+          </figcaption>
+        </figure>
+        <div class="bd__card" data-sc-cue="0 1 0 0"><article class="bd__panel is-on" data-bd-panel="0"><div class="bd__req"><span class="bd__op bd__op--agency">Agency</span><b>Retail media +$40k</b><small>Audience A</small></div><p class="bd__ctx">Within the agency’s agreed mandate. Two comparable retail activations on record, both within range.</p><dl class="bd__j"><div data-bd-j="0"><dt>Investment case</dt><dd><span class="bd__pill is-ok">Supported</span></dd></div><div data-bd-j="1"><dt>Permission</dt><dd><span class="bd__pill is-ok">Within mandate</span></dd></div><div data-bd-j="2"><dt>Disposition</dt><dd><span class="bd__pill is-ok">Proceeds</span></dd></div></dl><p class="bd__res" data-bd-j="3">Commits $40k against the shared audience limit.</p></article><article class="bd__panel" data-bd-panel="1"><div class="bd__req"><span class="bd__op bd__op--team">Marketing team</span><b>Creators +$60k</b><small>Audience A</small></div><p class="bd__ctx">Looks reasonable on its own: a strong creator precedent, spend within the team’s authority.</p><dl class="bd__j"><div data-bd-j="0"><dt>Investment case</dt><dd><span class="bd__pill is-ok">Supported</span></dd></div><div data-bd-j="1"><dt>Permission</dt><dd><span class="bd__pill is-ok">Within authority</span></dd></div><div data-bd-j="2"><dt>Disposition</dt><dd><span class="bd__pill is-ok">Proceeds · pending commit</span></dd></div></dl><p class="bd__res" data-bd-j="3">Would take shared commitment on Audience A to $100k of a $120k limit.</p></article><article class="bd__panel" data-bd-panel="2"><div class="bd__req"><span class="bd__op bd__op--agent">AI agent</span><b>Paid social +$35k</b><small>Audience A</small></div><p class="bd__ctx">Performance is up and the agent is inside its scope. But the combined effect is what the rules check.</p><dl class="bd__j"><div data-bd-j="0"><dt>Investment case</dt><dd><span class="bd__pill is-ok">Supported</span></dd></div><div data-bd-j="1"><dt>Permission</dt><dd><span class="bd__pill is-warn">Combined limit exceeded</span></dd></div><div data-bd-j="2"><dt>Disposition</dt><dd><span class="bd__pill is-warn">Held for review</span></dd></div></dl><p class="bd__res" data-bd-j="3">$40k + $60k + $35k = $135k against a $120k limit. The creators request, not yet committed, is held too. Rule, not judgment.</p><p class="bd__flip" data-bd-j="3"><b>Status changed</b> Creators +$60k: Proceeds → Held for review</p></article><article class="bd__panel" data-bd-panel="3"><div class="bd__req"><span class="bd__op bd__op--agent">AI agent</span><b>Scale search +$150k</b><small>Audience B</small></div><p class="bd__ctx">Justified by platform-reported ROAS of 4.1. Platform attribution is a claim, not evidence, and this size of move needs more.</p><dl class="bd__j"><div data-bd-j="0"><dt>Investment case</dt><dd><span class="bd__pill is-warn">Limited · platform claim</span></dd></div><div data-bd-j="1"><dt>Permission</dt><dd><span class="bd__pill is-warn">Evidence requirement unmet</span></dd></div><div data-bd-j="2"><dt>Disposition</dt><dd><span class="bd__pill is-warn">Held</span></dd></div></dl><p class="bd__res" data-bd-j="3">Resolution: request evidence. A geo test is queued. Requesting evidence resolves the hold; it is not permission.</p></article><article class="bd__panel" data-bd-panel="4"><div class="bd__req"><span class="bd__op bd__op--agency">Agency</span><b>Sponsorship renewal $300k · annual</b><small>Audience A</small></div><p class="bd__ctx">Overlaps the creator investment already in motion on the same audience. The renewal case is weak; a shorter option keeps flexibility.</p><dl class="bd__j"><div data-bd-j="0"><dt>Investment case</dt><dd><span class="bd__pill is-warn">Limited · overlap</span></dd></div><div data-bd-j="1"><dt>Permission</dt><dd><span class="bd__pill is-warn">Finance review on annual</span></dd></div><div data-bd-j="2"><dt>Disposition</dt><dd><span class="bd__pill is-warn">Constrained</span></dd></div></dl><p class="bd__res" data-bd-j="3">Resolution: a revised option. A three-month pilot is recommended for approval. Recommending an alternative is not permission to execute it.</p></article><article class="bd__panel" data-bd-panel="5"><div class="bd__req"><span class="bd__op bd__op--external">Direct platform change</span><b>Campaign raised +$20k in the ad account</b><small>Audience A</small></div><p class="bd__ctx">Made outside the governed path. MemoLogs cannot hold what it does not control, so this is detected after, not intercepted.</p><dl class="bd__j"><div data-bd-j="0"><dt>Investment case</dt><dd><span class="bd__pill is-gap">No case on record</span></dd></div><div data-bd-j="1"><dt>Permission</dt><dd><span class="bd__pill is-warn">Unapproved change</span></dd></div><div data-bd-j="2"><dt>Disposition</dt><dd><span class="bd__pill is-gap">Detected after · owner alerted</span></dd></div></dl><p class="bd__res" data-bd-j="3">Reconciled against approved decisions. Shared commitment now shows the departure. Honest boundary: intervention before execution only where the path is governed.</p></article>
+          <p class="bd__byline">Illustrative walkthrough with fictional requests. Strong evidence cannot override a spending limit; an authorized action is not a promise of results.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · CONFIDENCE -->
+  <section class="sc-section forwhom" data-sc-act="flow" data-sc-drift="#070D17" data-ml-act="forwhom">
+    <div class="sc-wrap">
+      <h2 class="sc-display sc-display--lg forwhom__head" data-sc-in>Finance has a ledger. Sales has a CRM. Now marketing has a record.</h2>
+      <div class="forwhom__grid">
+        <div class="block" data-sc-in>
+          <h3>One record of every advertising decision.</h3>
+          <div><p class="sc-body">Digital. TV and streaming. Retail media. Out-of-home. PR. Influencers. Sponsorships. Give enterprise marketing, finance and agency teams a shared view of the decisions behind the spend—across brands, regions and planning cycles.</p><p class="sc-body">Define success for each investment: new buyers, brand lift, qualified demand or another agreed objective. Review delivery against the brief and business impact against the evidence; media coverage or reach alone does not establish business impact.</p></div>
+        </div>
+        <div class="block" data-sc-in>
+          <h3>Start with one recurring investment review</h3>
+          <div>
+            <ol class="promises">
+              <li>Your marketing operations lead coordinates the pilot; marketing and finance name the decision owners.</li>
+              <li>Bring one current plan, existing commitments, approval guidance and any useful past reviews. Missing history stays visible.</li>
+              <li>The team or agency submits a proposal. MemoLogs assembles the evidence and rule checks; the named owner handles exceptions.</li>
+              <li>Leave the first review with a decision brief: relevant precedents, conflicts, approval needs and alternatives. No automated spending is needed to start.</li>
+              <li>Evaluate review preparation time, approval turnaround, commitments caught before approval and team adoption against an agreed baseline.</li>
+            </ol>
+          </div>
+        </div>
+        <div class="block" data-sc-in>
+          <h3>Independent by design</h3>
+          <div><p class="sc-body">Ad platforms benefit when spend grows. Agencies often earn against media volume. MemoLogs does neither: it does not sell the auction, buy the media or grade its own inventory.</p><p class="sc-body"><span class="ml-em">We are paid to improve the decision—not to increase the spend.</span></p></div>
+        </div>
+        <div class="block" data-sc-in>
+          <h3>Intelligence built from your own experience</h3>
+          <div>
+            <dl class="proof">
+              <div><dt>Context</dt><dd>What you were trying to achieve, the options you considered and why you chose this move.</dd></div>
+              <div><dt>Conditions</dt><dd>A data snapshot embedded with every decision: product, pricing, promos, seasonality, competition, search, news, reviews, sentiment and the economy at that moment.</dd></div>
+              <div><dt>Memory</dt><dd>Comparable decisions ranked by objective, market, audience and conditions—not just similar wording. The reasons for a match and its limitations travel with it.</dd></div>
+              <div><dt>Learning</dt><dd>Decision grades, estimated alternatives and recommendations grounded in your own organization's experience.</dd></div>
+              <div><dt>Continuity</dt><dd>People and agencies change. Your company's decision history stays with you.</dd></div>
+            </dl>
+          </div>
+        </div>
+      </div>
+      <div class="invariant" data-sc-in data-sc-stagger="80">
+        <span class="sc-label">Why companies can trust it</span>
+        <p>AI interprets the brief and finds the relevant experience. Rules you approved decide permission. Evidence limits what the system can conclude—it refuses rather than guesses. A persuasive recommendation cannot override an approved spending boundary. And MemoLogs is paid a flat fee for the decision, never a share of the media.</p>
+        <details class="sc-body">
+          <summary>What to establish before an enterprise pilot</summary>
+          <p>Agree data access, brand and agency separation, retention and deletion, model-provider data use, approval ownership and the audit records required. Confirm which actions are technically enforced and which rely on your existing approval process. These are pilot acceptance requirements, not claims of certifications or controls already deployed.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · RESOLVE -->
+  <section class="close" id="book" data-sc-act="pin" data-sc-span="1.5" data-sc-drift="#070D17" data-ml-act="close" data-ml-close>
+    <div data-sc-stage data-sc-verify-state="c=0.00">
+      <div class="close__far" data-sc-parallax="-0.6">
+        <img src="assets/hero-plate.webp" width="2736" height="1520" alt="" loading="lazy" decoding="async">
+      </div>
+      <div class="close__scene" aria-hidden="true">
+        <picture><source media="(max-width: 860px)" srcset="assets/close-poster-m.webp"><img class="close__poster" src="assets/close-poster.webp" alt=""></picture>
+        <canvas data-ml-view="close"></canvas>
+      </div>
+      <div class="close__floor" aria-hidden="true"></div>
+      <div class="sc-scrim close__scrim" aria-hidden="true"></div>
+      <div class="close__inner">
+        <div class="close__copy" data-sc-cue="0 1 0 0">
+          <h2 class="sc-display sc-display--lg">Give your advertising a memory.</h2>
+          <p class="sc-body">Bring one upcoming launch, renewal or regional media plan. We’ll run a real investment review through MemoLogs and show you what your company would have remembered.</p>
+          <a class="cta cta--lg" href="#book" data-sc-magnet="0.24" data-sc-cue="0 1 0 0" data-sc-rise="0">Book a walkthrough</a>
+        </div>
+      </div>
+      <footer class="foot">
+        <span>MemoLogs · Vertical AI for marketing</span>
+      </footer>
+    </div>
+  </section>
+
+</main>
+
+<dialog class="lead" data-lead-dialog data-api="https://app.memologs.com" aria-labelledby="lead-title">
+  <form class="lead__form" data-lead-form novalidate>
+    <button type="button" class="lead__close" data-lead-close aria-label="Close">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+    <div class="lead__head">
+      <span class="sc-label lead__kicker">Book a walkthrough</span>
+      <h2 class="lead__title" id="lead-title">Bring one decision. We’ll run it through MemoLogs.</h2>
+      <p class="lead__sub">A launch, a renewal or a regional media plan—whatever is on your desk. We’ll reply from a real person within one working day.</p>
+    </div>
+    <div class="lead__grid">
+      <label class="lead__field">
+        <span>First name</span>
+        <input type="text" name="first_name" autocomplete="given-name" maxlength="100" required>
+      </label>
+      <label class="lead__field">
+        <span>Last name</span>
+        <input type="text" name="last_name" autocomplete="family-name" maxlength="100" required>
+      </label>
+      <label class="lead__field lead__field--wide">
+        <span>Work email</span>
+        <input type="email" name="email" autocomplete="email" inputmode="email" maxlength="254" required>
+      </label>
+      <label class="lead__field">
+        <span>Company <em>optional</em></span>
+        <input type="text" name="organization" autocomplete="organization" maxlength="255">
+      </label>
+      <label class="lead__field">
+        <span>Website <em>optional</em></span>
+        <input type="text" name="website" autocomplete="url" inputmode="url" maxlength="200" placeholder="yourcompany.com">
+      </label>
+    </div>
+    <p class="lead__error" data-lead-error role="alert" hidden></p>
+    <div class="lead__actions">
+      <button type="submit" class="cta cta--lg lead__submit" data-lead-submit><span>Request a walkthrough</span></button>
+      <small class="lead__fine">We never share your details.</small>
+    </div>
+    <div class="lead__done" data-lead-done hidden>
+      <span class="lead__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></svg></span>
+      <h3>Thanks—we’ve got it.</h3>
+      <p data-lead-done-text>Check your inbox for a confirmation. We’ll be in touch within one working day to set a time.</p>
+      <button type="button" class="cta cta--quiet" data-lead-close>Close</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="vendor-three.min.js"></script>
+<script src="scrollcraft.js"></script>
+<script src="playbook.js"></script>
+<script src="page.js"></script>
+<script src="lead.js"></script>
+</body>
+</html>
