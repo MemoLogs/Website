@@ -12,61 +12,11 @@
 <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 <link rel="stylesheet" href="assets/fonts/fonts.css">
 <link rel="stylesheet" href="scrollcraft.css">
+<link rel="stylesheet" href="shell.css">
 <style>
-  :root {
-    --sc-canvas:      #070D17;
-    --sc-surface:     #0F1A28;
-    --sc-ink:         #EDF4F5;
-    --sc-ink-soft:    #93A7B0;
-    --sc-accent:      #2EF0CB;
-    --sc-accent-ink:  #06121A;
-    --sc-font-display: "Archivo", "Geist", system-ui, sans-serif;
-    --sc-font-text:    "Geist", system-ui, sans-serif;
-    --sc-font-mono:    "Geist Mono", ui-monospace, monospace;
-    --sc-shadow-color: 215 60% 3%;
-    --ml-teal-deep: #0E6E60;
-    --ml-line: color-mix(in oklab, var(--sc-ink) 14%, transparent);
-    --ml-rail: 0rem;   /* kept at zero: nothing floats over the content any more */
-    --ml-bar: clamp(4.2rem, 4rem + 1.6vw, 5.4rem);
-  }
-  html { background: var(--sc-canvas); }
-  body { color: var(--sc-ink); }
   .sc-display { font-weight: 500; }
   .sc-body { line-height: 1.66; letter-spacing: 0.002em; }
   .ml-em { color: var(--sc-ink); }
-
-  /* ------------------------------------------------------------ chrome -- */
-  .bar {
-    position: fixed; inset: 0 0 auto 0; z-index: var(--sc-z-chrome);
-    display: flex; align-items: center; justify-content: space-between;
-    padding: var(--sc-4) var(--sc-gutter);
-    pointer-events: none;
-  }
-  .bar > * { pointer-events: auto; }
-  .bar::before {
-    content: ""; position: absolute; inset: 0 0 -1.4rem 0; z-index: -1;
-    background: linear-gradient(to bottom, color-mix(in oklab, var(--sc-canvas) 96%, transparent) 0%, color-mix(in oklab, var(--sc-canvas) 86%, transparent) 55%, transparent 100%);
-    opacity: 0; transition: opacity var(--sc-d-slow) var(--sc-ease-out);
-  }
-  .bar.is-scrolled::before { opacity: 1; }
-  .mark { display: inline-flex; align-items: center; gap: var(--sc-3); text-decoration: none; color: var(--sc-ink); font-family: var(--sc-font-display); font-weight: 500; letter-spacing: -0.01em; font-size: 1.05rem; }
-  .mark svg, .mark__img { width: 26px; height: 26px; }
-  .mark__img { object-fit: contain; }
-
-  .cta {
-    display: inline-flex; align-items: center; gap: var(--sc-2);
-    font-family: var(--sc-font-display); font-weight: 500; font-size: var(--sc-t-sm);
-    letter-spacing: 0; white-space: nowrap;
-    color: var(--sc-accent-ink); background: var(--sc-accent);
-    padding: 0.7rem 1.1rem; border-radius: var(--sc-r-sm); text-decoration: none;
-    box-shadow: var(--sc-e1);
-    transition: transform 140ms var(--sc-ease-out), background-color 140ms var(--sc-ease-out), box-shadow 140ms var(--sc-ease-out);
-  }
-  .cta:hover { background: color-mix(in oklab, var(--sc-accent) 88%, white); box-shadow: var(--sc-e2); }
-  .cta:active { transform: translateY(1px) scale(0.985); }
-  .cta--quiet { background: transparent; color: var(--sc-ink); box-shadow: inset 0 0 0 1px var(--sc-hairline-strong); }
-  .cta--quiet:hover { background: color-mix(in oklab, var(--sc-ink) 8%, transparent); box-shadow: inset 0 0 0 1px var(--sc-hairline-strong); }
-  .cta--lg { font-size: var(--sc-t-base); padding: 0.95rem 1.45rem; }
 
   /* -------------------------------------------------------------- hero -- */
   .hero { --ml-obj-x: 0; }
@@ -526,51 +476,63 @@
   /* the close stage: the full playbook in place */
 
 
-  /* ------------------------------------------------- the lead form -- */
-  .lead { border: 0; padding: 0; margin: auto; width: min(38rem, calc(100vw - 2rem)); max-height: min(92vh, 60rem); background: transparent; color: var(--sc-ink); overflow: visible; }
-  .lead::backdrop { background: color-mix(in oklab, var(--sc-canvas) 74%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-  .lead[open] { animation: lead-in 360ms var(--sc-ease-out); }
-  .lead[open]::backdrop { animation: lead-fade 360ms var(--sc-ease-out); }
-  @keyframes lead-in { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
-  @keyframes lead-fade { from { opacity: 0; } to { opacity: 1; } }
-  .lead__form { position: relative; padding: clamp(1.5rem, 3vw, 2.4rem) clamp(1.4rem, 3vw, 2.4rem) clamp(1.4rem, 3vw, 2.2rem); border-radius: 20px; background: linear-gradient(165deg, color-mix(in oklab, var(--sc-surface) 92%, var(--sc-accent)) 0%, var(--sc-surface) 38%, color-mix(in oklab, var(--sc-canvas) 82%, var(--sc-surface)) 100%); box-shadow: var(--sc-e3), 0 30px 90px -30px color-mix(in oklab, var(--sc-accent) 40%, transparent), var(--sc-edge); display: grid; gap: var(--sc-5); max-height: inherit; overflow: auto; }
-  .lead__close { all: unset; cursor: pointer; position: absolute; top: 0.9rem; right: 0.9rem; width: 2.2rem; height: 2.2rem; display: grid; place-items: center; border-radius: 50%; color: var(--sc-ink-soft); box-shadow: inset 0 0 0 1px var(--sc-hairline); transition: background-color 140ms var(--sc-ease-out), color 140ms var(--sc-ease-out); }
-  .lead__close:hover { background: color-mix(in oklab, var(--sc-ink) 8%, transparent); color: var(--sc-ink); }
-  .lead__close:focus-visible { outline: 2px solid var(--sc-accent); outline-offset: 2px; }
-  .lead__close svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-  .lead__head { display: grid; gap: var(--sc-3); padding-right: 2.5rem; }
-  .lead__kicker { color: var(--sc-accent); }
-  .lead__title { margin: 0; font-family: var(--sc-font-display); font-weight: 500; font-size: clamp(1.45rem, 1.1rem + 1.2vw, 2rem); line-height: 1.1; letter-spacing: var(--sc-track-snug); text-wrap: balance; }
-  .lead__sub { margin: 0; color: var(--sc-ink-soft); font-size: var(--sc-t-sm); line-height: 1.55; max-width: 48ch; }
-  .lead__grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sc-4); }
-  .lead__field { display: grid; gap: 0.4rem; min-width: 0; }
-  .lead__field--wide { grid-column: 1 / -1; }
-  .lead__field > span { font-family: var(--sc-font-mono); font-size: 0.62rem; letter-spacing: var(--sc-track-wide); text-transform: uppercase; color: var(--sc-ink-soft); display: flex; justify-content: space-between; gap: 0.5rem; }
-  .lead__field em { font-style: normal; text-transform: none; letter-spacing: 0.02em; color: color-mix(in oklab, var(--sc-ink-soft) 70%, transparent); }
-  .lead__field input { all: unset; box-sizing: border-box; width: 100%; padding: 0.78rem 0.9rem; border-radius: 10px; font-family: var(--sc-font-text); font-size: var(--sc-t-base); color: var(--sc-ink); background: color-mix(in oklab, var(--sc-canvas) 60%, transparent); box-shadow: inset 0 0 0 1px var(--sc-hairline-strong); transition: box-shadow 140ms var(--sc-ease-out), background-color 140ms var(--sc-ease-out); }
-  .lead__field input::placeholder { color: color-mix(in oklab, var(--sc-ink-soft) 55%, transparent); }
-  .lead__field input:focus-visible { box-shadow: inset 0 0 0 1px var(--sc-accent), 0 0 0 3px color-mix(in oklab, var(--sc-accent) 22%, transparent); background: color-mix(in oklab, var(--sc-canvas) 40%, transparent); }
-  .lead__field.is-invalid input { box-shadow: inset 0 0 0 1px #F3C969, 0 0 0 3px color-mix(in oklab, #F3C969 18%, transparent); }
-  .lead__error { margin: -0.5rem 0 0; padding: 0.7rem 0.9rem; border-radius: 10px; font-size: var(--sc-t-sm); line-height: 1.45; color: var(--sc-ink); background: color-mix(in oklab, #F3C969 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, #F3C969 45%, transparent); }
-  .lead__error[hidden] { display: none; }
-  .lead__actions { display: flex; align-items: center; gap: var(--sc-5); flex-wrap: wrap; }
-  .lead__submit { position: relative; min-width: 14rem; justify-content: center; }
-  .lead__submit[disabled] { cursor: progress; opacity: 0.8; }
-  .lead__submit.is-busy span { visibility: hidden; }
-  .lead__submit.is-busy::after { content: ""; position: absolute; width: 1.1rem; height: 1.1rem; border-radius: 50%; border: 2px solid color-mix(in oklab, var(--sc-accent-ink) 25%, transparent); border-top-color: var(--sc-accent-ink); animation: lead-spin 720ms linear infinite; }
-  @keyframes lead-spin { to { transform: rotate(360deg); } }
-  .lead__fine { font-family: var(--sc-font-mono); font-size: 0.62rem; letter-spacing: 0.02em; color: color-mix(in oklab, var(--sc-ink-soft) 75%, transparent); }
-  .lead__done { display: grid; justify-items: start; gap: var(--sc-3); padding-top: var(--sc-2); }
-  .lead__done[hidden] { display: none; }
-  .lead__check { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 50%; color: var(--sc-accent-ink); background: var(--sc-accent); box-shadow: 0 0 0 6px color-mix(in oklab, var(--sc-accent) 18%, transparent); margin-bottom: var(--sc-2); }
-  .lead__check svg { width: 1.3rem; height: 1.3rem; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-  .lead__done h3 { margin: 0; font-family: var(--sc-font-display); font-weight: 500; font-size: var(--sc-t-xl); letter-spacing: var(--sc-track-snug); line-height: 1.1; }
-  .lead__done p { margin: 0; color: var(--sc-ink-soft); font-size: var(--sc-t-sm); line-height: 1.55; max-width: 44ch; }
-  .lead__done .cta { margin-top: var(--sc-3); }
-  .lead.is-done .lead__grid, .lead.is-done .lead__actions, .lead.is-done .lead__error, .lead.is-done .lead__head { display: none; }
-  html.lead-open { overflow: hidden; }
-  @media (max-width: 560px) { .lead__grid { grid-template-columns: 1fr; } .lead__actions { flex-direction: column; align-items: stretch; } .lead__submit { min-width: 0; } }
-  @media (prefers-reduced-motion: reduce) { .lead[open], .lead[open]::backdrop { animation: none; } }
+  /* the booking dialog and the chrome now live in shell.css */
+
+
+  /* ---------------------------------------------------------- platform --
+     The five product pages, hung off the same Prove / Act / Remember spine
+     the page has been building. A row is a link, so the whole row is the
+     target; the phase tag on the left is what ties it back to the story. */
+  .prod__head { max-width: 18ch; margin-top: var(--sc-4); }
+  .prod__lede { margin-top: var(--sc-5); max-width: 54ch; }
+  .prod__list {
+    list-style: none; margin: var(--sc-8) 0 0; padding: 0;
+    border-top: 1px solid var(--ml-line);
+  }
+  .prod__list li { border-bottom: 1px solid var(--ml-line); }
+  .prod__list a {
+    display: grid; grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+    align-items: baseline; gap: var(--sc-5);
+    padding: var(--sc-5) 0; text-decoration: none; color: inherit;
+    transition: padding-inline 260ms var(--sc-ease-out);
+  }
+  .prod__phase {
+    font-family: var(--sc-font-mono); font-size: var(--sc-t-xs);
+    letter-spacing: var(--sc-track-wide); text-transform: uppercase;
+    color: var(--sc-accent);
+  }
+  .prod__body { display: grid; gap: var(--sc-2); min-width: 0; }
+  .prod__body b {
+    font-family: var(--sc-font-display); font-weight: 500;
+    font-size: var(--sc-t-xl); letter-spacing: var(--sc-track-snug);
+    line-height: 1.1; color: var(--sc-ink);
+    transition: color 200ms var(--sc-ease-out);
+  }
+  .prod__body span {
+    color: var(--sc-ink-soft); font-size: var(--sc-t-sm);
+    line-height: 1.55; max-width: 52ch; text-wrap: pretty;
+  }
+  .prod__arrow {
+    width: 1.25rem; height: 1.25rem; align-self: center; flex: none;
+    fill: none; stroke: var(--sc-ink-soft); stroke-width: 1.6;
+    stroke-linecap: round; stroke-linejoin: round;
+    transition: transform 260ms var(--sc-ease-out), stroke 200ms var(--sc-ease-out);
+  }
+  .prod__list a:hover .prod__body b { color: var(--sc-accent); }
+  .prod__list a:hover .prod__arrow { stroke: var(--sc-accent); transform: translateX(4px); }
+  .prod__list a:focus-visible { outline-offset: -2px; }
+  .prod__more {
+    display: flex; flex-wrap: wrap; gap: var(--sc-3) var(--sc-6);
+    margin-top: var(--sc-7);
+    font-family: var(--sc-font-mono); font-size: var(--sc-t-xs);
+    letter-spacing: var(--sc-track-wide); text-transform: uppercase;
+  }
+  .prod__more a { color: var(--sc-ink-soft); text-underline-offset: 0.4em; }
+  .prod__more a:hover { color: var(--sc-accent); }
+  @media (prefers-reduced-motion: reduce) {
+    .prod__list a, .prod__arrow { transition: none; }
+    .prod__list a:hover .prod__arrow { transform: none; }
+  }
 
   /* ----------------------------------------------------------- mobile -- */
   @media (max-width: 860px) {
@@ -597,7 +559,7 @@
     .rail__lead { width: min(78vw, 22rem); }
     .station { width: min(74vw, 19rem); min-height: 22rem; }
     .rail__tail { width: min(58vw, 15rem); padding-left: 0.75rem; }
-    .demo__inner { grid-template-columns: minmax(0, 1fr); gap: var(--sc-4); padding: 4.6rem var(--sc-gutter) 1.25rem; align-content: start; }
+    .demo__inner { grid-template-columns: minmax(0, 1fr); gap: var(--sc-4); padding: calc(var(--ml-bar) + 0.75rem) var(--sc-gutter) 1.25rem; align-content: start; }
     .demo__inner { grid-template-rows: auto 1fr auto; grid-template-areas: 'head' 'body' 'close'; }
     .proposal, .tests { grid-area: body; }
     .tests { position: relative; }
@@ -616,14 +578,30 @@
     .verdict__reason { font-size: 0.78rem; }
     .demo__close .sc-lede { font-size: var(--sc-t-lg); }
     .agents__scrim { background: linear-gradient(to top, color-mix(in oklab, var(--sc-canvas) 96%, transparent) 0%, color-mix(in oklab, var(--sc-canvas) 86%, transparent) 55%, color-mix(in oklab, var(--sc-canvas) 30%, transparent) 80%, transparent 100%); }
+    /* A kicker belongs to the heading under it. The 3rem boundary gap of the
+       desktop rhythm reads as a missing paragraph at phone width. */
+    .sc-stack > :is(h1, h2, h3) { margin-top: var(--sc-4); }
+    /* the platform list: the phase tag rides above the name on one column */
+    .prod { padding-block: 3.25rem; }
+    .prod__head { max-width: none; text-wrap: pretty; }
+    .prod__list { margin-top: var(--sc-6); }
+    .prod__list a {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.35rem var(--sc-4); padding: var(--sc-4) 0;
+      align-items: start;
+    }
+    .prod__phase { grid-column: 1 / -1; }
+    .prod__body b { font-size: var(--sc-t-lg); }
+    .prod__arrow { align-self: start; margin-top: 0.15rem; }
+    .prod__more { gap: var(--sc-3) var(--sc-5); margin-top: var(--sc-6); }
     /* phones: sections sit close together; the page reads as one column, not a stack of empty screens */
     .missing { padding-block: 3.25rem 2.5rem; }
     .silence { min-height: 0; padding-block: 2.5rem 3rem; }
     .forwhom { padding-block: 3.25rem; }
     .agents { min-height: 0; padding-block: 14vh 3rem; }
     .snap { min-height: 150vh; --k: clamp(0, calc((var(--sc-p, 0) - 0.14) / 0.32), 1); --k2: clamp(0, calc((var(--sc-p, 0) - 0.44) / 0.1), 1); }
-    .snap__stage { align-items: start; }
-    .fw__inner { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: 'head' 'fig' 'card'; gap: var(--sc-3); padding: 4.2rem var(--sc-gutter) 3rem; align-items: start; }
+    .snap__stage { align-items: center; padding-top: calc(var(--ml-bar) + 0.5rem); }
+    .fw__inner { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; grid-template-areas: 'head' 'fig' 'card'; gap: var(--sc-3); padding: 4.2rem var(--sc-gutter) 3rem; align-items: start; align-content: space-between; }
     .fw__head .sc-display--md { font-size: var(--sc-t-lg); }
     .fw__head .sc-label { display: none; }
     .fw__fig { width: 100%; }
@@ -647,7 +625,7 @@
     .pbl__ex .pbv--snap, .pbl__ex .pbv--who { display: none; }
     .pbl__hand { font-size: 0.6rem; }
     .fw__byline { font-size: 0.62rem; }
-    .bd__inner { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: 'head' 'fig' 'card'; gap: var(--sc-3); padding: 4.2rem var(--sc-gutter) 3rem; align-items: start; }
+    .bd__inner { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; grid-template-areas: 'head' 'fig' 'card'; gap: var(--sc-3); padding: 4.2rem var(--sc-gutter) 3rem; align-items: start; align-content: space-between; }
     .bd__head { grid-template-columns: minmax(0, 1fr); gap: 0.3rem; }
     .bd__head .sc-display--md { font-size: var(--sc-t-lg); max-width: none; }
     .bd__head .sc-body { display: none; }
@@ -669,18 +647,18 @@
     .bd__res { font-size: 0.76rem; }
     .bd__byline { font-size: 0.6rem; }
     .snap { min-height: 150vh; }
-    .snap__grid { grid-template-columns: minmax(0, 1fr); gap: var(--sc-4); align-content: start; padding-top: 4.5rem; }
+    .snap__grid { grid-template-columns: minmax(0, 1fr); gap: var(--sc-4); align-content: start; padding-top: 0; }
     .snap__copy .sc-display--lg { font-size: var(--sc-t-xl); max-width: none; }
     .snap__copy .sc-body { margin-top: var(--sc-3); font-size: var(--sc-t-sm); }
     .snap__legend { display: none; }
     .snap__fig { --r: 5.1rem; max-height: 52vh; max-width: none; aspect-ratio: 1 / 0.95; }
     .snap__ring { width: calc(var(--r) * 3.4); height: calc(var(--r) * 3.5); border-radius: 12%; }
-    .snap__core { width: 7.8rem; padding: 0.6rem; }
+    .snap__core { width: min(10.5rem, 50vw); padding: 0.7rem 0.75rem; }
     .snap__core b { font-size: 0.85rem; }
     .ct { width: auto; min-height: 0; padding: 0.3rem; grid-template-columns: auto; border-radius: 9px; }
     .ct__i { grid-row: auto; width: 1.6rem; height: 1.6rem; }
     .ct__t, .ct__bar, .ct__spark, .ct__dot { display: none; }
-    .snap__fig { --r: 5.6rem; }
+    .snap__fig { --r: min(5.6rem, 24vw); }
     .ladder li { grid-template-columns: minmax(0, 1fr); gap: var(--sc-2); }
     .block { display: block; }
     .block > div { border-top: 0; padding-top: var(--sc-3); }
@@ -690,20 +668,32 @@
     .close__copy .sc-display--lg { font-size: 1.55rem; max-width: none; }
     .close__copy .sc-body { margin-top: var(--sc-3); }
     .close__copy .cta { margin-top: var(--sc-4); }
-    .foot { position: static; margin-top: var(--sc-5); }
     .pb__head, .pb__dots, .pb__feed, .pb__aura { display: none; }
   }
   /* ------------------------------------------ mobile: second pass -- */
   @media (max-width: 860px) {
     /* hero copy sits at the bottom again on phones; the beads take the top half */
     .hero__copy { top: auto; translate: none; }
+    /* the second line now arrives at p=0.56 and never fades, so its scrim has to
+       ramp with it — and it has to darken the BOTTOM, where the copy actually
+       sits on a phone, not the left edge it sits on at desk width. */
+    .hero__scrim--b {
+      opacity: clamp(0, calc((var(--sc-p, 0) - 0.46) * 8), 1);
+      background: linear-gradient(to top,
+        color-mix(in oklab, var(--sc-canvas) 92%, transparent) 0%,
+        color-mix(in oklab, var(--sc-canvas) 70%, transparent) 34%,
+        transparent 62%);
+    }
     /* the transition beat: a shorter line that still draws with the scroll */
     .silence__rule { height: clamp(3.5rem, 12vh, 6rem); }
     /* the decision loop has to fit one phone viewport while pinned */
-    .fw__inner { padding: 3.9rem var(--sc-gutter) 1.2rem; gap: 0.5rem; }
+    .fw__inner { padding: calc(var(--ml-bar) + 0.55rem) var(--sc-gutter) clamp(1rem, 2.5vh, 1.6rem); gap: 0.5rem; }
     .fw__head .sc-display--md { font-size: 1.05rem; }
     .fw__fig { gap: 0.4rem; }
-    .fw__scene { aspect-ratio: 1 / 0.6; }
+    /* Width alone cannot size this: the scene shares a pinned viewport with a
+       head and a 15rem card, so on a short phone a width-derived height
+       pushes the card off the bottom. Cap it against the viewport. */
+    .fw__scene { aspect-ratio: 1 / 0.92; max-height: 33vh; }
     .fw__lab { font-size: 0.66rem; padding: 0.14rem 0.4rem; gap: 0.25rem; }
     .fw__lab small { font-size: 0.5rem; }
     .fw__lab--gate { font-size: 0.48rem; transform: translate(-8%, 95%); }
@@ -715,7 +705,7 @@
     .fw__lab--grp small { font-size: 0.7rem; }
     .fw__handoff { max-width: 100%; white-space: normal; text-align: center; line-height: 1.35; font-size: 0.58rem; }
     .fw__handoff-k { display: none; }
-    .fw__dock { min-height: 14rem; }
+    .fw__dock { min-height: 15rem; }
     .pb.is-docked { padding: 0.55rem 0.7rem 0.6rem; }
     .pb__head { padding-bottom: 0.5rem; }
     .pb__orb { width: 1.7rem; height: 1.7rem; }
@@ -728,7 +718,7 @@
     .pbl__hand { display: none; }
     .fw__byline { display: none; }
     /* the boundary scene: same constraint, one viewport */
-    .bd__inner { padding: 3.9rem var(--sc-gutter) 1rem; gap: 0.4rem; }
+    .bd__inner { padding: calc(var(--ml-bar) + 0.55rem) var(--sc-gutter) clamp(1rem, 2.5vh, 1.6rem); gap: 0.4rem; }
     .bd__head .sc-display--md { font-size: 1.05rem; }
     .bd__scene { aspect-ratio: 1 / 0.66; }
     .bd__fig { gap: 0.4rem; }
@@ -745,6 +735,26 @@
     .bd__flip { font-size: 0.6rem; padding: 0.35rem 0.5rem; }
     .bd__byline { display: none; }
   }
+  /* ------------------ short phones: the pinned scenes have to give ground --
+     A pinned stage is exactly one viewport tall and clips. On a 667pt phone the
+     boundary card alone wants 319px, so the scene above it has to shrink or the
+     card loses its last lines off the bottom edge. Buy the height back from the
+     scene and the padding, not from the copy. */
+  @media (max-width: 860px) and (max-height: 760px) {
+    .bd__inner { padding-top: calc(var(--ml-bar) + 0.3rem); gap: 0.28rem; }
+    .bd__fig { gap: 0.3rem; }
+    .bd__scene { aspect-ratio: auto; height: 23vh; min-height: 9rem; }
+    /* seven plates share a 150px-tall scene here: trim the plate, not the words */
+    .bd__lab { font-size: 0.56rem; padding: 0.08rem 0.28rem; }
+    .bd__lab--wall b { font-size: 0.72rem; }
+    .bd__meter { padding: 0.4rem 0.6rem; gap: 0.25rem; }
+    .bd__panel { padding: 0.6rem 0.7rem; gap: 0.3rem; }
+    .bd__j { gap: 0.25rem; }
+    .bd__j > div { padding: 0.2rem 0; }
+    .fw__inner { padding-top: calc(var(--ml-bar) + 0.3rem); }
+    .fw__cap { gap: 0.35rem; }
+  }
+
   /* tablets: the snapshot has room for the full tiles again */
   @media (min-width: 561px) and (max-width: 860px) {
     .snap__fig { --tw: 8.4rem; --r: calc(var(--tw) * 1.06); max-width: 40rem; margin-inline: auto; aspect-ratio: 1 / 0.92; }
@@ -758,7 +768,7 @@
   }
   @media (max-width: 400px) {
     .hero__line b { font-size: 1.3rem; }
-    .demo__inner { padding-top: 4.2rem; }
+    .demo__inner { padding-top: calc(var(--ml-bar) + 0.5rem); }
   }
   @media (max-width: 400px) { .verdict__rules { display: none; } .verdict__reason { font-size: 0.72rem; } .verdict ul { font-size: 0.72rem; } }
   @media (prefers-reduced-motion: reduce) {
@@ -1085,6 +1095,73 @@
     </div>
   </section>
 
+
+  <!-- 9 · THE PLATFORM: where each part of the loop is written down in full -->
+  <section class="sc-section prod" data-sc-act="flow" data-sc-drift="#0A1220" data-ml-act="products">
+    <div class="sc-wrap">
+      <span class="sc-label" data-sc-in>The platform</span>
+      <h2 class="sc-display sc-display--lg prod__head" data-sc-in>Five products. One decision loop.</h2>
+      <p class="sc-body prod__lede" data-sc-in>Everything above is one of three things: proving what the money caused, acting inside the limits you approved, or remembering why. Each product does one of them.</p>
+      <ul class="prod__list" data-sc-in data-sc-stagger="70">
+        <li>
+          <a href="/incrementality-iq">
+            <span class="prod__phase">Prove</span>
+            <span class="prod__body">
+              <b>Incrementality IQ</b>
+              <span>Live geo experiments in your own markets. Three published methods run separately on the same question, and you get a verdict only when they agree.</span>
+            </span>
+            <svg class="prod__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12 5.5 18.5 12 12 18.5"/></svg>
+          </a>
+        </li>
+        <li>
+          <a href="/creative-iq">
+            <span class="prod__phase">Prove</span>
+            <span class="prod__body">
+              <b>Creative IQ</b>
+              <span>Which assets are wearing out, and what the platform’s AI is learning from them—before your cost per acquisition is the thing that tells you.</span>
+            </span>
+            <svg class="prod__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12 5.5 18.5 12 12 18.5"/></svg>
+          </a>
+        </li>
+        <li>
+          <a href="/audience-iq">
+            <span class="prod__phase">Act</span>
+            <span class="prod__body">
+              <b>Audience IQ</b>
+              <span>Segments graded by the value they actually return, activated on the platforms you already run.</span>
+            </span>
+            <svg class="prod__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12 5.5 18.5 12 12 18.5"/></svg>
+          </a>
+        </li>
+        <li>
+          <a href="/copilot">
+            <span class="prod__phase">Act</span>
+            <span class="prod__body">
+              <b>Media Copilot</b>
+              <span>Ask the account a question. The answer arrives with its evidence, its confidence and the sources it rests on.</span>
+            </span>
+            <svg class="prod__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12 5.5 18.5 12 12 18.5"/></svg>
+          </a>
+        </li>
+        <li>
+          <a href="/memory-iq">
+            <span class="prod__phase">Remember</span>
+            <span class="prod__body">
+              <b>Memory IQ</b>
+              <span>Every decision kept with its conditions, its approver and its result—then surfaced the next time someone is about to make it again.</span>
+            </span>
+            <svg class="prod__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12 5.5 18.5 12 12 18.5"/></svg>
+          </a>
+        </li>
+      </ul>
+      <div class="prod__more" data-sc-in>
+        <a href="/how-it-works">How a pilot runs</a>
+        <a href="/case-studies">What it measured</a>
+        <a href="/pricing">What it costs</a>
+      </div>
+    </div>
+  </section>
+
   <!-- 8 · RESOLVE -->
   <section class="close" id="book" data-sc-act="pin" data-sc-span="1.5" data-sc-drift="#070D17" data-ml-act="close" data-ml-close>
     <div data-sc-stage data-sc-verify-state="c=0.00">
@@ -1104,59 +1181,56 @@
           <a class="cta cta--lg" href="#book" data-sc-magnet="0.24" data-sc-cue="0 1 0 0" data-sc-rise="0">Book a walkthrough</a>
         </div>
       </div>
-      <footer class="foot">
-        <span>MemoLogs · Vertical AI for marketing</span>
-      </footer>
     </div>
   </section>
 
 </main>
 
-<dialog class="lead" data-lead-dialog data-api="https://app.memologs.com" aria-labelledby="lead-title">
-  <form class="lead__form" data-lead-form novalidate>
-    <button type="button" class="lead__close" data-lead-close aria-label="Close">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
-    </button>
-    <div class="lead__head">
-      <span class="sc-label lead__kicker">Book a walkthrough</span>
-      <h2 class="lead__title" id="lead-title">Bring one decision. We’ll run it through MemoLogs.</h2>
-      <p class="lead__sub">A launch, a renewal or a regional media plan—whatever is on your desk. We’ll reply from a real person within one working day.</p>
+<footer class="sfoot">
+  <div class="sfoot__wrap">
+    <div class="sfoot__grid">
+      <div class="sfoot__brand">
+        <a class="mark" href="/" aria-label="MemoLogs, home">
+          <img class="mark__img" src="/assets/logo-mark.webp" width="400" height="396" alt="" aria-hidden="true" loading="lazy" decoding="async">
+          <span>MemoLogs</span>
+        </a>
+        <p>The system of record for advertising decisions. Prove what the money caused, act inside approved limits, and remember why.</p>
+        <a class="cta" href="#book">Book a walkthrough</a>
+      </div>
+      <nav class="sfoot__col" aria-label="Product">
+        <h2>Product</h2>
+      <a href="/incrementality-iq">Incrementality IQ</a>
+      <a href="/creative-iq">Creative IQ</a>
+      <a href="/audience-iq">Audience IQ</a>
+      <a href="/memory-iq">Memory IQ</a>
+      <a href="/copilot">Media Copilot</a>
+      </nav>
+      <nav class="sfoot__col" aria-label="Company">
+        <h2>Company</h2>
+      <a href="/how-it-works">How it works</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/case-studies">Case studies</a>
+      <a href="/about">About</a>
+      </nav>
+      <nav class="sfoot__col" aria-label="Legal">
+        <h2>Legal</h2>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+        <a href="mailto:hello@memologs.com">hello@memologs.com</a>
+      </nav>
     </div>
-    <div class="lead__grid">
-      <label class="lead__field">
-        <span>First name</span>
-        <input type="text" name="first_name" autocomplete="given-name" maxlength="100" required>
-      </label>
-      <label class="lead__field">
-        <span>Last name</span>
-        <input type="text" name="last_name" autocomplete="family-name" maxlength="100" required>
-      </label>
-      <label class="lead__field lead__field--wide">
-        <span>Work email</span>
-        <input type="email" name="email" autocomplete="email" inputmode="email" maxlength="254" required>
-      </label>
-      <label class="lead__field">
-        <span>Company <em>optional</em></span>
-        <input type="text" name="organization" autocomplete="organization" maxlength="255">
-      </label>
-      <label class="lead__field">
-        <span>Website <em>optional</em></span>
-        <input type="text" name="website" autocomplete="url" inputmode="url" maxlength="200" placeholder="yourcompany.com">
-      </label>
+    <div class="sfoot__base">
+      <span>&copy; 2026 MEMO AI, Inc. All rights reserved.</span>
+      <span class="sfoot__legal">
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+        <a href="/">Home</a>
+      </span>
     </div>
-    <p class="lead__error" data-lead-error role="alert" hidden></p>
-    <div class="lead__actions">
-      <button type="submit" class="cta cta--lg lead__submit" data-lead-submit><span>Request a walkthrough</span></button>
-      <small class="lead__fine">We never share your details.</small>
-    </div>
-    <div class="lead__done" data-lead-done hidden>
-      <span class="lead__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></svg></span>
-      <h3>Thanks—we’ve got it.</h3>
-      <p data-lead-done-text>Check your inbox for a confirmation. We’ll be in touch within one working day to set a time.</p>
-      <button type="button" class="cta cta--quiet" data-lead-close>Close</button>
-    </div>
-  </form>
-</dialog>
+  </div>
+</footer>
+
+<!-- the booking dialog is built by lead.js, so one definition serves every page -->
 
 <script src="vendor-three.min.js"></script>
 <script src="scrollcraft.js"></script>

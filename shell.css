@@ -1,0 +1,171 @@
+/* ==========================================================================
+   shell.css — the chrome every page shares.
+   --------------------------------------------------------------------------
+   The fixed bar, the button, the booking dialog, and the site footer. These
+   used to live inline in index.html; they moved here the moment there was a
+   second page, so the header and the dialog cannot drift between the homepage
+   and the content pages. Page-specific styling stays with its page.
+   Depends on the tokens in scrollcraft.css.
+   ========================================================================== */
+
+/* ------------------------------------------------------------- brand --
+   The MemoLogs palette and typefaces, overriding the scrollcraft defaults.
+   This lived inline in index.html until there was a second page; a subpage
+   that misses it renders in the engine's stock lime, so it belongs here. */
+:root {
+  --sc-canvas:      #070D17;
+  --sc-surface:     #0F1A28;
+  --sc-ink:         #EDF4F5;
+  --sc-ink-soft:    #93A7B0;
+  --sc-accent:      #2EF0CB;
+  --sc-accent-ink:  #06121A;
+  --sc-font-display: "Archivo", "Geist", system-ui, sans-serif;
+  --sc-font-text:    "Geist", system-ui, sans-serif;
+  --sc-font-mono:    "Geist Mono", ui-monospace, monospace;
+  --sc-shadow-color: 215 60% 3%;
+  --ml-teal-deep: #0E6E60;
+  --ml-line: color-mix(in oklab, var(--sc-ink) 14%, transparent);
+  --ml-rail: 0rem;   /* kept at zero: nothing floats over the content any more */
+
+  /* The height the fixed bar reserves. Every page that puts content under the
+     bar clears it with calc(var(--ml-bar) + ...), so it lives with the bar. */
+  --ml-bar: clamp(4.2rem, 4rem + 1.6vw, 5.4rem);
+}
+html { background: var(--sc-canvas); }
+body { color: var(--sc-ink); }
+
+/* ------------------------------------------------------------ chrome -- */
+.bar {
+    position: fixed; inset: 0 0 auto 0; z-index: var(--sc-z-chrome);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: var(--sc-4) var(--sc-gutter);
+    pointer-events: none;
+  }
+  .bar > * { pointer-events: auto; }
+  .bar::before {
+    content: ""; position: absolute; inset: 0 0 -1.4rem 0; z-index: -1;
+    background: linear-gradient(to bottom, color-mix(in oklab, var(--sc-canvas) 96%, transparent) 0%, color-mix(in oklab, var(--sc-canvas) 86%, transparent) 55%, transparent 100%);
+    opacity: 0; transition: opacity var(--sc-d-slow) var(--sc-ease-out);
+  }
+  .bar.is-scrolled::before { opacity: 1; }
+  .mark { display: inline-flex; align-items: center; gap: var(--sc-3); text-decoration: none; color: var(--sc-ink); font-family: var(--sc-font-display); font-weight: 500; letter-spacing: -0.01em; font-size: 1.05rem; }
+  .mark svg, .mark__img { width: 26px; height: 26px; }
+  .mark__img { object-fit: contain; }
+
+  .cta {
+    display: inline-flex; align-items: center; gap: var(--sc-2);
+    font-family: var(--sc-font-display); font-weight: 500; font-size: var(--sc-t-sm);
+    letter-spacing: 0; white-space: nowrap;
+    color: var(--sc-accent-ink); background: var(--sc-accent);
+    padding: 0.7rem 1.1rem; border-radius: var(--sc-r-sm); text-decoration: none;
+    box-shadow: var(--sc-e1);
+    transition: transform 140ms var(--sc-ease-out), background-color 140ms var(--sc-ease-out), box-shadow 140ms var(--sc-ease-out);
+  }
+  .cta:hover { background: color-mix(in oklab, var(--sc-accent) 88%, white); box-shadow: var(--sc-e2); }
+  .cta:active { transform: translateY(1px) scale(0.985); }
+  .cta--quiet { background: transparent; color: var(--sc-ink); box-shadow: inset 0 0 0 1px var(--sc-hairline-strong); }
+  .cta--quiet:hover { background: color-mix(in oklab, var(--sc-ink) 8%, transparent); box-shadow: inset 0 0 0 1px var(--sc-hairline-strong); }
+  .cta--lg { font-size: var(--sc-t-base); padding: 0.95rem 1.45rem; }
+
+  /* ------------------------------------------------- the lead form -- */
+  .lead { border: 0; padding: 0; margin: auto; width: min(38rem, calc(100vw - 2rem)); max-height: min(92vh, 60rem); background: transparent; color: var(--sc-ink); overflow: visible; }
+  .lead::backdrop { background: color-mix(in oklab, var(--sc-canvas) 74%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .lead[open] { animation: lead-in 360ms var(--sc-ease-out); }
+  .lead[open]::backdrop { animation: lead-fade 360ms var(--sc-ease-out); }
+  @keyframes lead-in { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
+  @keyframes lead-fade { from { opacity: 0; } to { opacity: 1; } }
+  .lead__form { position: relative; padding: clamp(1.5rem, 3vw, 2.4rem) clamp(1.4rem, 3vw, 2.4rem) clamp(1.4rem, 3vw, 2.2rem); border-radius: 20px; background: linear-gradient(165deg, color-mix(in oklab, var(--sc-surface) 92%, var(--sc-accent)) 0%, var(--sc-surface) 38%, color-mix(in oklab, var(--sc-canvas) 82%, var(--sc-surface)) 100%); box-shadow: var(--sc-e3), 0 30px 90px -30px color-mix(in oklab, var(--sc-accent) 40%, transparent), var(--sc-edge); display: grid; gap: var(--sc-5); max-height: inherit; overflow: auto; }
+  .lead__close { all: unset; cursor: pointer; position: absolute; top: 0.9rem; right: 0.9rem; width: 2.2rem; height: 2.2rem; display: grid; place-items: center; border-radius: 50%; color: var(--sc-ink-soft); box-shadow: inset 0 0 0 1px var(--sc-hairline); transition: background-color 140ms var(--sc-ease-out), color 140ms var(--sc-ease-out); }
+  .lead__close:hover { background: color-mix(in oklab, var(--sc-ink) 8%, transparent); color: var(--sc-ink); }
+  .lead__close:focus-visible { outline: 2px solid var(--sc-accent); outline-offset: 2px; }
+  .lead__close svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  .lead__head { display: grid; gap: var(--sc-3); padding-right: 2.5rem; }
+  .lead__kicker { color: var(--sc-accent); }
+  .lead__title { margin: 0; font-family: var(--sc-font-display); font-weight: 500; font-size: clamp(1.45rem, 1.1rem + 1.2vw, 2rem); line-height: 1.1; letter-spacing: var(--sc-track-snug); text-wrap: balance; }
+  .lead__sub { margin: 0; color: var(--sc-ink-soft); font-size: var(--sc-t-sm); line-height: 1.55; max-width: 48ch; }
+  .lead__grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sc-4); }
+  .lead__field { display: grid; gap: 0.4rem; min-width: 0; }
+  .lead__field--wide { grid-column: 1 / -1; }
+  .lead__field > span { font-family: var(--sc-font-mono); font-size: 0.62rem; letter-spacing: var(--sc-track-wide); text-transform: uppercase; color: var(--sc-ink-soft); display: flex; justify-content: space-between; gap: 0.5rem; }
+  .lead__field em { font-style: normal; text-transform: none; letter-spacing: 0.02em; color: color-mix(in oklab, var(--sc-ink-soft) 70%, transparent); }
+  .lead__field input { all: unset; box-sizing: border-box; width: 100%; padding: 0.78rem 0.9rem; border-radius: 10px; font-family: var(--sc-font-text); font-size: var(--sc-t-base); color: var(--sc-ink); background: color-mix(in oklab, var(--sc-canvas) 60%, transparent); box-shadow: inset 0 0 0 1px var(--sc-hairline-strong); transition: box-shadow 140ms var(--sc-ease-out), background-color 140ms var(--sc-ease-out); }
+  .lead__field input::placeholder { color: color-mix(in oklab, var(--sc-ink-soft) 55%, transparent); }
+  .lead__field input:focus-visible { box-shadow: inset 0 0 0 1px var(--sc-accent), 0 0 0 3px color-mix(in oklab, var(--sc-accent) 22%, transparent); background: color-mix(in oklab, var(--sc-canvas) 40%, transparent); }
+  .lead__field.is-invalid input { box-shadow: inset 0 0 0 1px #F3C969, 0 0 0 3px color-mix(in oklab, #F3C969 18%, transparent); }
+  .lead__error { margin: -0.5rem 0 0; padding: 0.7rem 0.9rem; border-radius: 10px; font-size: var(--sc-t-sm); line-height: 1.45; color: var(--sc-ink); background: color-mix(in oklab, #F3C969 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, #F3C969 45%, transparent); }
+  .lead__error[hidden] { display: none; }
+  .lead__actions { display: flex; align-items: center; gap: var(--sc-5); flex-wrap: wrap; }
+  .lead__submit { position: relative; min-width: 14rem; justify-content: center; }
+  .lead__submit[disabled] { cursor: progress; opacity: 0.8; }
+  .lead__submit.is-busy span { visibility: hidden; }
+  .lead__submit.is-busy::after { content: ""; position: absolute; width: 1.1rem; height: 1.1rem; border-radius: 50%; border: 2px solid color-mix(in oklab, var(--sc-accent-ink) 25%, transparent); border-top-color: var(--sc-accent-ink); animation: lead-spin 720ms linear infinite; }
+  @keyframes lead-spin { to { transform: rotate(360deg); } }
+  .lead__fine { font-family: var(--sc-font-mono); font-size: 0.62rem; letter-spacing: 0.02em; color: color-mix(in oklab, var(--sc-ink-soft) 75%, transparent); }
+  .lead__done { display: grid; justify-items: start; gap: var(--sc-3); padding-top: var(--sc-2); }
+  .lead__done[hidden] { display: none; }
+  .lead__check { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 50%; color: var(--sc-accent-ink); background: var(--sc-accent); box-shadow: 0 0 0 6px color-mix(in oklab, var(--sc-accent) 18%, transparent); margin-bottom: var(--sc-2); }
+  .lead__check svg { width: 1.3rem; height: 1.3rem; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .lead__done h3 { margin: 0; font-family: var(--sc-font-display); font-weight: 500; font-size: var(--sc-t-xl); letter-spacing: var(--sc-track-snug); line-height: 1.1; }
+  .lead__done p { margin: 0; color: var(--sc-ink-soft); font-size: var(--sc-t-sm); line-height: 1.55; max-width: 44ch; }
+  .lead__done .cta { margin-top: var(--sc-3); }
+  .lead.is-done .lead__grid, .lead.is-done .lead__actions, .lead.is-done .lead__error, .lead.is-done .lead__head { display: none; }
+  html.lead-open { overflow: hidden; }
+  @media (max-width: 560px) { .lead__grid { grid-template-columns: 1fr; } .lead__actions { flex-direction: column; align-items: stretch; } .lead__submit { min-width: 0; } }
+  @media (prefers-reduced-motion: reduce) { .lead[open], .lead[open]::backdrop { animation: none; } }
+
+/* ------------------------------------------------------- the site foot --
+   Only the content pages use this. The homepage closes on its own pinned
+   scene and carries a single line of its own inside it. */
+.sfoot__wrap {
+  width: 100%; max-width: 82rem; margin-inline: auto;
+  padding-inline: var(--sc-gutter);
+}
+.sfoot {
+  border-top: 1px solid var(--sc-hairline);
+  background: color-mix(in oklab, var(--sc-canvas) 92%, black);
+  padding-block: var(--sc-8) var(--sc-6);
+}
+.sfoot__grid {
+  display: grid; gap: var(--sc-7) var(--sc-6);
+  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
+}
+.sfoot__brand { display: grid; gap: var(--sc-3); align-content: start; }
+.sfoot__brand p { margin: 0; max-width: 30ch; color: var(--sc-ink-soft); font-size: var(--sc-t-sm); line-height: 1.6; }
+.sfoot__brand .cta { justify-self: start; }
+.sfoot__col { display: grid; gap: var(--sc-3); align-content: start; }
+.sfoot__col h2 {
+  margin: 0; font-family: var(--sc-font-mono); font-size: var(--sc-t-xs);
+  letter-spacing: var(--sc-track-wide); text-transform: uppercase;
+  color: var(--sc-ink-soft); font-weight: 400;
+}
+.sfoot__col a {
+  color: var(--sc-ink); text-decoration: none; font-size: var(--sc-t-sm);
+  width: fit-content; transition: color 140ms var(--sc-ease-out);
+}
+.sfoot__col a:hover { color: var(--sc-accent); text-decoration: underline; }
+.sfoot__col a[aria-current="page"] { color: var(--sc-accent); }
+.sfoot__base {
+  display: flex; flex-wrap: wrap; gap: var(--sc-3) var(--sc-5);
+  align-items: baseline; justify-content: space-between;
+  margin-top: var(--sc-8); padding-top: var(--sc-5);
+  border-top: 1px solid var(--sc-hairline);
+  font-size: var(--sc-t-xs); color: var(--sc-ink-soft);
+}
+.sfoot__base a { color: inherit; }
+.sfoot__base a:hover { color: var(--sc-accent); }
+.sfoot__legal { display: flex; flex-wrap: wrap; gap: var(--sc-2) var(--sc-4); }
+
+/* Breadcrumbs on a content page: the imported sheet styles .sp-breadcrumb, but
+   the first link has to be reachable and obviously a link. */
+.sp-breadcrumb a { color: var(--sc-ink-soft); }
+.sp-breadcrumb a:hover { color: var(--sc-accent); }
+
+@media (max-width: 860px) {
+  .sfoot__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sc-6) var(--sc-5); }
+  .sfoot__brand { grid-column: 1 / -1; }
+  .sfoot { padding-block: var(--sc-7) var(--sc-5); }
+  .sfoot__base { margin-top: var(--sc-6); }
+}
+@media (max-width: 460px) {
+  .sfoot__grid { grid-template-columns: minmax(0, 1fr); }
+}

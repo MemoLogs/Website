@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://memologs.com/sitemap.xml

@@ -292,6 +292,7 @@
     var y = 0, needsLayout = true;
     var progressBar = root.querySelector('[data-sc-progress]');
     var docEl = document.documentElement;
+    var lastCanvas = null;   // last drift colour written, so a no-op write is skipped
 
     // One rate for the page, overridable per clip. Read from the mount root, the
     // document element, or the option bag, in that order.
@@ -977,7 +978,17 @@
         if (D.act.raw >= 1) { driftA = D; driftB = D; driftT = 1; }
       }
       if (driftA) {
-        docEl.style.setProperty('--sc-canvas', mixColor(driftB.rgb, driftA.rgb, driftT));
+        // Writing a custom property on :root invalidates the style of every
+        // element that reads it, which here is most of the page. The mixed
+        // colour is quantised to integer channels, so on the large majority of
+        // frames it is the value already set and the invalidation buys nothing
+        // — while anything that reads style back in the same frame then pays
+        // for a full recalc. Only write on an actual change.
+        var mixed = mixColor(driftB.rgb, driftA.rgb, driftT);
+        if (mixed !== lastCanvas) {
+          lastCanvas = mixed;
+          docEl.style.setProperty('--sc-canvas', mixed);
+        }
       }
 
       if (progressBar) {

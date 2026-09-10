@@ -15,8 +15,68 @@
    generic error copy never says "nothing was sent". */
 (function () {
   'use strict';
+
+  /* The dialog is defined once, here, rather than pasted into every page.
+     It is a form, not indexable content, so nothing is lost by building it
+     at runtime — and the alternative is fifteen copies that drift apart.
+     A page may still ship its own [data-lead-dialog] markup; that one wins. */
+  var MARKUP = `
+<dialog class="lead" data-lead-dialog data-api="https://app.memologs.com" aria-labelledby="lead-title">
+  <form class="lead__form" data-lead-form novalidate>
+    <button type="button" class="lead__close" data-lead-close aria-label="Close">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+    <div class="lead__head">
+      <span class="sc-label lead__kicker">Book a walkthrough</span>
+      <h2 class="lead__title" id="lead-title">Bring one decision. We’ll run it through MemoLogs.</h2>
+      <p class="lead__sub">A launch, a renewal or a regional media plan—whatever is on your desk. We’ll reply from a real person within one working day.</p>
+    </div>
+    <div class="lead__grid">
+      <label class="lead__field">
+        <span>First name</span>
+        <input type="text" name="first_name" autocomplete="given-name" maxlength="100" required>
+      </label>
+      <label class="lead__field">
+        <span>Last name</span>
+        <input type="text" name="last_name" autocomplete="family-name" maxlength="100" required>
+      </label>
+      <label class="lead__field lead__field--wide">
+        <span>Work email</span>
+        <input type="email" name="email" autocomplete="email" inputmode="email" maxlength="254" required>
+      </label>
+      <label class="lead__field">
+        <span>Company <em>optional</em></span>
+        <input type="text" name="organization" autocomplete="organization" maxlength="255">
+      </label>
+      <label class="lead__field">
+        <span>Website <em>optional</em></span>
+        <input type="text" name="website" autocomplete="url" inputmode="url" maxlength="200" placeholder="yourcompany.com">
+      </label>
+    </div>
+    <p class="lead__error" data-lead-error role="alert" hidden></p>
+    <div class="lead__actions">
+      <button type="submit" class="cta cta--lg lead__submit" data-lead-submit><span>Request a walkthrough</span></button>
+      <small class="lead__fine">We never share your details.</small>
+    </div>
+    <div class="lead__done" data-lead-done hidden>
+      <span class="lead__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></svg></span>
+      <h3>Thanks—we’ve got it.</h3>
+      <p data-lead-done-text>Check your inbox for a confirmation. We’ll be in touch within one working day to set a time.</p>
+      <button type="button" class="cta cta--quiet" data-lead-close>Close</button>
+    </div>
+  </form>
+</dialog>
+`;
+
   var dialog = document.querySelector('[data-lead-dialog]');
-  if (!dialog || typeof dialog.showModal !== 'function') return;
+  if (!dialog) {
+    var t = document.createElement('template');
+    t.innerHTML = MARKUP.trim();
+    dialog = t.content.firstElementChild;
+    if (!dialog) return;
+    document.body.appendChild(dialog);
+  }
+  if (typeof dialog.showModal !== 'function') return;
 
   var form = dialog.querySelector('[data-lead-form]');
   var submit = dialog.querySelector('[data-lead-submit]');

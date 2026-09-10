@@ -12,7 +12,31 @@
   var smooth = function (x) { x = clamp01(x); return x * x * (3 - 2 * x); };
   var range = function (x, a, b) { return smooth((x - a) / (b - a)); };
   var lerp = function (a, b, t) { return a + (b - a) * t; };
-  var pOf = function (el) { return parseFloat(getComputedStyle(el).getPropertyValue('--sc-p')) || 0; };
+  /* Act progress, read from the engine rather than back out of the cascade.
+     --sc-p is published as a custom property for CSS to use, but asking for it
+     with getComputedStyle is a synchronous style flush, and the engine has just
+     dirtied :root in the same frame — so each of these calls was costing a full
+     recalc of the document (~2ms measured), five times a frame. The engine
+     already holds the number; take it from there and fall back to the property
+     only if an element turns out not to be a mounted act. */
+  /* A test hook, not a rendering input: only touch the DOM when it changes. */
+  function verify(el, v) { if (el && el.__scv !== v) { el.__scv = v; el.setAttribute('data-sc-verify-state', v); } }
+
+  var actIndex = null;
+  function actRecord(el) {
+    if (!actIndex) {
+      var inst = window.ScrollCraft && window.ScrollCraft.instances[0];
+      if (!inst) return null;                       // not mounted yet this frame
+      actIndex = new Map();
+      for (var i = 0; i < inst.acts.length; i++) actIndex.set(inst.acts[i].el, inst.acts[i]);
+    }
+    return actIndex.get(el) || null;
+  }
+  var pOf = function (el) {
+    var a = actRecord(el);
+    if (a) return a.p;
+    return parseFloat(getComputedStyle(el).getPropertyValue('--sc-p')) || 0;
+  };
 
   var heroAct = document.querySelector('[data-ml-hero]');
   var closeAct = document.querySelector('[data-ml-close]');
@@ -583,9 +607,9 @@
         draw(closeOn ? 'close' : 'hero', gl);
       }
     }
-    heroStage.setAttribute('data-sc-verify-state', 's=' + (gl ? gl.state.s : 0).toFixed(2) + ' p=' + ph.toFixed(2));
-    closeStage.setAttribute('data-sc-verify-state', 'c=' + (gl ? gl.state.c : 0).toFixed(2));
-    if (snapStage) { var sp = pOf(snapAct); snapStage.setAttribute('data-sc-verify-state', 'k=' + Math.max(0, Math.min(1, (sp - 0.28) / 0.34)).toFixed(2) + ' s=' + Math.max(0, Math.min(1, (sp - 0.62) / 0.08)).toFixed(2)); }
+    verify(heroStage, 's=' + (gl ? gl.state.s : 0).toFixed(2) + ' p=' + ph.toFixed(2));
+    verify(closeStage, 'c=' + (gl ? gl.state.c : 0).toFixed(2));
+    if (snapStage) { var sp = pOf(snapAct); verify(snapStage, 'k=' + Math.max(0, Math.min(1, (sp - 0.28) / 0.34)).toFixed(2) + ' s=' + Math.max(0, Math.min(1, (sp - 0.62) / 0.08)).toFixed(2)); }
     tickRecord();
     tickCounters();
     tickFlywheel();
@@ -712,7 +736,7 @@
     if (fw.handoffText.textContent !== HAND[here]) fw.handoffText.textContent = HAND[here];
     fw.handoff.classList.toggle('is-on', u > 0.08);
     setDock(visible.fw, here);
-    fw.stage.setAttribute('data-sc-verify-state', 't=' + t.toFixed(2) + ' u=' + u.toFixed(2));
+    verify(fw.stage, 't=' + t.toFixed(2) + ' u=' + u.toFixed(2));
   }
 
 
@@ -800,7 +824,7 @@
         el.classList.toggle('is-on', frac >= at);
       });
     }
-    bdEls.stage.setAttribute('data-sc-verify-state', 'b=' + t.toFixed(2) + ' c=' + committed + ' h=' + held);
+    verify(bdEls.stage, 'b=' + t.toFixed(2) + ' c=' + committed + ' h=' + held);
   }
 
   /* ================= the playbook: a view derived from scroll position == */
@@ -878,6 +902,15 @@
     Object.keys(spans).forEach(function (k) { var el = acts[k] || (k === 'hero' ? heroAct : null); if (el) el.setAttribute('data-sc-span', String(spans[k])); });
     var mc = { '.proposal': '0 0.36 0 0.06', '.test:nth-child(1)': '0.34 0.64 0.06 0.06', '.test:nth-child(2)': '0.40 0.64 0.06 0.06', '.test:nth-child(3)': '0.46 0.64 0.06 0.06', '.verdict': '0.66 0.94 0.06 0.06', '.demo__close': '0.88 1 0.06 0.1' };
     Object.keys(mc).forEach(function (sel) { var el = demoAct.querySelector(sel); if (el) el.setAttribute('data-sc-cue', mc[sel]); });
+    // A pin's cue clock reaches 1 the moment the stage stops sticking, but the
+    // stage still has a whole viewport of scroll left before it clears the top.
+    // Fading the second hero line out AT 1 therefore hands the reader ~840px of
+    // empty backdrop before the next section arrives, which reads as a hole
+    // between the first and second sections. Hold it lit and let it leave with
+    // the stage: no fade-out, so the copy is what scrolls away.
+    var hc = [[heroAct.querySelector('.hero__copy:not(.hero__copy--b)'), '0 0.52 0 0.1'],
+              [heroAct.querySelector('.hero__copy--b'), '0.56 1 0.1 0']];
+    hc.forEach(function (p) { if (p[0]) p[0].setAttribute('data-sc-cue', p[1]); });
   }
   ScrollCraft.mount(document.body);
 })();
