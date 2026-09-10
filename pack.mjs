@@ -20,7 +20,7 @@ const engineCss = fs.readFileSync('scrollcraft.css', 'utf8');
 body = body.replace(/(src|srcset)="(assets\/[^"]+)"/g, (m, attr, p) => `${attr}="${dataUri(p)}"`);
 for (const f of ["vendor-three.min.js", "scrollcraft.js", "playbook.js", "page.js", "lead.js"]) {
   const js = fs.readFileSync(f, 'utf8');
-  body = body.replace(`<script src="${f}"></script>`, () => '<script>' + js + '</script>');
+  body = body.replace(`<script defer src="${f}"></script>`, () => '<script>' + js + '</script>');
 }
 
 const out = `${title}\n${desc}\n<style>${fontsCss}</style>\n<style>${engineCss}</style>\n<style>${styleInline}</style>\n${body}`;

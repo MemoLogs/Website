@@ -174,8 +174,38 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* =============================================================== DEVICES ==
    Driven by the engine. Restyle your own markup, not these.                */
 
-.sc-act--pinned { position: relative; }
-.sc-stage {
+/* A pinned act is only half-built by CSS: mount() puts the .sc-stage class on
+   the stage and layout() writes the act's height. Both land after the first
+   paint — after every script ahead of the engine has downloaded and run, which
+   on a cold load is long enough to see. Until then the act is a zero-height box
+   and whatever follows it lands on the opening screen instead. So the pre-paint
+   state has to stand on its own: the stage sticks from its attribute, and the
+   act reserves its span from CSS. */
+.sc-act--pinned,
+[data-sc-act="pin"], [data-sc-act="pan"], [data-sc-act="scrub"] { position: relative; }
+
+/* Scoped to :not(.sc-ready) so the moment the engine is up, the inline height
+   it writes is the only source of truth again — a stale rule here would fight
+   layout() on every resize. vh, not svh: layout() writes vh, and mixing the two
+   makes the act resize under the reader when a phone's URL bar moves. */
+html:not(.sc-ready) :is([data-sc-act="pin"], [data-sc-act="pan"], [data-sc-act="scrub"]) {
+  height: calc(var(--sc-span, 1.5) * 100vh);
+}
+/* Mirrors data-sc-span for that one pass. An unlisted span falls back to the
+   engine's own default of 1.5 and is corrected at layout(), below the fold
+   either way; add a line here when you author a new span. */
+[data-sc-span="1.2"] { --sc-span: 1.2; }
+[data-sc-span="1.5"] { --sc-span: 1.5; }
+[data-sc-span="1.7"] { --sc-span: 1.7; }
+[data-sc-span="2.3"] { --sc-span: 2.3; }
+[data-sc-span="2.4"] { --sc-span: 2.4; }
+[data-sc-span="2.5"] { --sc-span: 2.5; }
+[data-sc-span="2.6"] { --sc-span: 2.6; }
+[data-sc-span="3.4"] { --sc-span: 3.4; }
+[data-sc-span="4.2"] { --sc-span: 4.2; }
+[data-sc-span="5.2"] { --sc-span: 5.2; }
+
+.sc-stage, [data-sc-stage] {
   position: sticky; top: 0;
   height: 100vh; height: 100svh;
   overflow: clip;
@@ -265,6 +295,13 @@ video[data-sc-scrub] { opacity: 0; transition: opacity 380ms var(--sc-ease-out);
 /* cue defaults: the engine writes opacity/transform inline, these are the
    pre-paint state so nothing flashes before the first read() */
 [data-sc-cue] { opacity: 0; will-change: opacity, transform; }
+/* ...except one that is already open at progress 0. `opacity: 0` is the right
+   pre-paint state for a cue that fades IN later, and exactly the wrong one for
+   the copy that is supposed to be on screen when the page opens: it hides the
+   first thing the reader is meant to see for as long as the engine takes to
+   boot. Mark those `data-sc-cue-open`; it is the pre-paint half of a window
+   written `data-sc-cue="0 <to> 0 <out>"`. */
+[data-sc-cue][data-sc-cue-open] { opacity: 1; }
 .sc-ready [data-sc-cue] { transition: none; }
 
 /* kinetic split */
@@ -417,7 +454,7 @@ video[data-sc-scrub].sc-has-clip { opacity: 1; }
 @media (max-width: 860px) {
   .sc-copy { inset-inline: var(--sc-gutter); max-width: none; }
   .sc-copy--trail { text-align: left; }
-  .sc-stage { height: 100svh; }
+  .sc-stage, [data-sc-stage] { height: 100svh; }
   /* .sc-copy--trail re-anchors to the left and spans the full width here, so a
      bottom-RIGHT corner gradient darkens the one corner the copy just left and
      guarantees a contrast failure over any bright clip. Point the density at
