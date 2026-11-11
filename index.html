@@ -779,6 +779,7 @@
     .ct { animation: none; }
     .snap__ring { transform: none; }
   }
+.entry-nav{display:flex;align-items:center;gap:clamp(9px,2.5vw,30px)}.beginner-entry{font:600 clamp(11px,1.1vw,15px)/1.2 Geist,Arial,sans-serif;color:inherit;text-decoration:underline;text-underline-offset:4px}.beginner-entry:focus-visible{outline:2px solid currentColor;outline-offset:3px}@media(max-width:480px){.bar .mark span{display:none}.bar{gap:6px}.entry-nav{gap:10px}}
 </style>
 </head>
 <body>
@@ -790,7 +791,7 @@
     <img class="mark__img" src="assets/logo-mark.webp" width="400" height="396" alt="" aria-hidden="true" decoding="async">
     <span>MemoLogs</span>
   </a>
-  <a class="cta cta--bar" href="#book">Book a walkthrough</a>
+  <nav class="entry-nav" aria-label="Main navigation"><a class="beginner-entry" href="/memo-for-beginners">Memo for Beginners</a><a class="cta cta--bar" href="#book">Book a walkthrough</a></nav>
 </header>
 
 <aside class="pb" id="record" aria-label="The decision loop, stage by stage" aria-live="polite">
@@ -1155,6 +1156,7 @@
         </li>
       </ul>
       <div class="prod__more" data-sc-in>
+        <a href="/memo-for-beginners">Memo for Beginners</a>
         <a href="/how-it-works">How a pilot runs</a>
         <a href="/case-studies">What it measured</a>
         <a href="/pricing">What it costs</a>
@@ -1207,6 +1209,7 @@
       </nav>
       <nav class="sfoot__col" aria-label="Company">
         <h2>Company</h2>
+      <a href="/memo-for-beginners">Memo for Beginners</a>
       <a href="/how-it-works">How it works</a>
       <a href="/pricing">Pricing</a>
       <a href="/case-studies">Case studies</a>
